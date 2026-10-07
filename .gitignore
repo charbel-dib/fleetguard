@@ -15,6 +15,7 @@ dist/
 .DS_Store
 Thumbs.db
 START_HERE.md
+UPDATE_02.md
 
 # Downloaded data, fitted models and reproducible local outputs
 /data/

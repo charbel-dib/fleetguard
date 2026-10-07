@@ -3,12 +3,12 @@
 Cost-aware classification of Air Pressure System (APS) failures from Scania truck operational data.
 
 An unnecessary inspection and a missed failure do not have the same cost. FleetGuard compares
-simple reference classifiers with regularized logistic regression, then selects a decision
+reference classifiers, regularized logistic regression and tree ensembles, then selects a decision
 threshold using the challenge cost: **10 × false positives + 500 × false negatives**.
 
-This repository starts with the data and evaluation foundation. It contains an installable Python
-package, verified source snapshots, a reproducible holdout, saved inference pipelines and CI.
-Tree ensembles, calibration, an API and a web application are subsequent increments.
+The package includes verified source snapshots, group-aware cross-validation, isolated calibration
+and threshold tuning, saved inference pipelines, experiment figures and CI. An API and web
+application follow the model comparison and optimization work.
 
 ## What is being predicted?
 
@@ -39,6 +39,14 @@ uv run --frozen --extra dev fleetguard download
 uv run --frozen --extra dev fleetguard validate
 uv run --frozen --extra dev fleetguard train
 ```
+
+For the model comparison introduced in version 0.2:
+
+```bash
+uv run --frozen --extra dev fleetguard compare
+```
+
+Existing users: apply the changed files as described in [UPDATE_02.md](UPDATE_02.md).
 
 These commands work in PowerShell too. The archive download is about 54 MiB. The complete training
 run needs substantially more memory than the download size because parsing and preprocessing
@@ -156,6 +164,30 @@ results should not be interpreted as unbiased final-test estimates. The official
 been evaluated. Full metrics and source/environment provenance are in
 [docs/results/baseline-validation.md](docs/results/baseline-validation.md).
 
+## Train-only model comparison
+
+`compare` reads `configs/comparison.toml`. It preserves the original 48,000/12,000 development
+split, then compares ten candidates using three scoring folds within development. Each fold's
+pool has separate fitting, calibration and threshold roles. The scoring labels never select the
+threshold, and retained validation labels never select the champion.
+
+Candidates add Random Forest, native-missing-value HGB, CPU XGBoost, HGB sigmoid calibration,
+a missing-indicator ablation and a signed-log/robust-scaling variant. The HGB calibrator wraps
+the already-fitted model using `FrozenEstimator`. All candidates use equal fitting sample sizes.
+HGB's internal random early-stopping holdout is disabled; budgets are fixed in the config.
+
+The resulting run under `artifacts/comparison/` contains CV metrics, OOF predictions, role
+manifests, error summaries, figures, and only the CV-selected champion's final artifact. The
+existing `predict --run ...` command accepts that run. Full details are in
+[docs/comparison-methodology.md](docs/comparison-methodology.md).
+
+The full Scania run recorded for this increment selected XGBoost with an out-of-fold cost of
+38,740 over 48,000 scored observations. Its frozen retained-validation decision produced
+181 false positives and 17 false negatives: cost 10,310, recall 91.5%, precision 50.27%.
+The official test has not been evaluated. These results use a different protocol and fitting
+sample size from the original baseline and are not a same-data before/after comparison.
+The measured comparison and figures are in [docs/results/comparison-02.md](docs/results/comparison-02.md).
+
 ## Checks and CI
 
 ```bash
@@ -163,12 +195,15 @@ uv run --frozen --extra dev ruff format --check .
 uv run --frozen --extra dev ruff check .
 uv run --frozen --extra dev pytest
 uv run --frozen --extra dev python -m fleetguard.smoke
+uv run --frozen --extra dev python -m fleetguard.comparison_smoke
 uv run --frozen --extra dev python -m build
 ```
 
 CI runs on Python 3.11 and 3.12. It tests CSV parsing, data integrity, grouped splits, cost
 calculations, exact threshold search, preprocessing isolation, artifact reloads and batch inference.
-It builds a wheel and smoke-tests that wheel outside the source directory. The synthetic smoke
+It also tests separated roles, frozen calibration, champion selection independent of retained
+validation labels, and XGBoost artifact reloads. It builds a wheel and smoke-tests that wheel
+outside the source directory. The synthetic smoke
 fixture exercises the software offline and is never presented as a Scania benchmark.
 
 The full UCI download and training run are deliberately excluded from pull-request CI. CI does
@@ -198,10 +233,11 @@ Version the code, config, lockfile and small documented experiment summaries.
 
 ## Limits and next work
 
-The single validation fold is used both to choose thresholds and compare candidates, so its
-selected results are optimistic development estimates. The next increment introduces
-cross-validation within the training partition, tree models, controlled preprocessing ablations,
-calibration and error analysis. The official test remains untouched during that work.
+The original baseline selects thresholds and models on one development holdout. Version 0.2
+adds train-only CV with separate calibration and threshold roles, but selecting among candidates
+still induces optimism. The retained validation has already been inspected in the baseline.
+The next increment adds bounded hyperparameter search, deeper ablations, a PyTorch MLP and
+model interpretation before freezing the official-test evaluation.
 
 Duplicate grouping addresses only identical released feature rows. Anonymization prevents
 physical explanations of individual sensors and does not allow us to rule out repeated trucks,
@@ -211,7 +247,8 @@ benchmark does not establish production reliability.
 Only load trusted locally produced `joblib` artifacts. A checksum detects accidental changes;
 it does not make a pickle safe to load from an unknown source.
 
-The implementation plan is in [docs/roadmap.md](docs/roadmap.md).
+The implementation plan is in [docs/roadmap.md](docs/roadmap.md), and the complete progress
+checklist through portfolio publication is in [PROJECT_CHECKLIST.md](PROJECT_CHECKLIST.md).
 
 ## License and attribution
 

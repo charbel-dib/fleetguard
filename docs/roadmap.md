@@ -1,61 +1,74 @@
-# FleetGuard — next code increments
+# FleetGuard — implementation sequence
 
-This is an implementation sequence, not a time estimate. Each increment should leave the
-repository runnable and add evidence for the decisions it introduces.
+The complete status checklist is [PROJECT_CHECKLIST.md](../PROJECT_CHECKLIST.md).
+This sequence describes code and acceptance criteria, not a time estimate.
 
-## 1. Data and baseline foundation — this commit
+## 1. Data and baseline foundation — delivered
 
-Implemented: source import, validation, grouped holdout, two reference classifiers, two logistic
-variants, exact cost-aware threshold selection, run outputs, pipeline persistence, batch inference,
-tests and package CI. The final-test command exists but is not part of development runs.
+Source import, data validation, grouped holdout, trivial/logistic baselines, cost-aware thresholds,
+pipeline persistence, batch inference and CI. The first push is confirmed.
 
-## 2. Model comparison and error analysis
+## 2. Train-only comparison — delivered in update 02
 
-- Add `training/cross_validation.py`: train-only stratified group folds, identical folds for all
-  candidates, out-of-fold predictions, fold metrics and uncertainty across folds.
-- Extend `models.py` with Random Forest, HistGradientBoosting and XGBoost. Give each candidate
-  its own preprocessing contract; trees do not need standardized inputs.
-- Add `features/ablations.py`: missing indicators on/off, robust scaling, optional train-only
-  clipping and transformation of suitable nonnegative counters.
-- Add `evaluation/calibration.py`: out-of-fold/split-separated calibration and reliability plots.
-  Avoid using the same labels to fit calibration and report its quality.
-- Add `evaluation/errors.py`: FP/FN cases, errors by missingness and stability across seeds.
-- Add Optuna and MLflow only with explicit search spaces, compute budgets and logged split hashes.
-- Document selected choices in `docs/experiments.md`, with failed candidates and real results.
+Three development CV folds, separate fitting/calibration/threshold roles, Random Forest, HGB,
+CPU XGBoost, frozen HGB sigmoid calibration, initial preprocessing ablations, OOF metrics,
+error/reliability summaries and reproducible figures. Apply the delta archive and follow UPDATE_02.md
+for the feature branch, checks, push and PR. A local implementation does not establish a remote CI result.
 
-Acceptance: compare every candidate with the same data protocol and report whether gains persist
-across folds. Preserve the current validation and official test roles.
+## 3. Optimization and ML coverage
 
-## 3. Inference service
+Add bounded Optuna search inside development, MLflow experiment tracking, train-fold-only
+resampling, deeper preprocessing ablations, multi-seed stability and learning curves.
+Build a PyTorch MLP with explicit training/evaluation modes, early stopping, checkpointing and
+controlled comparison against tree models. Confirm GPU identity/VRAM before selecting GPU settings.
 
-- Add `serving/predictor.py`: typed feature schema, loaded artifact and score/decision contract.
-- Add `api/main.py`, `/health`, `/ready`, `/predict`, `/predict-batch`; use FastAPI/Pydantic.
-- Set request limits, reject unknown feature fields, expose model version and log structured errors.
-- Add API contract tests and a container image; compare API scores with the saved local pipeline.
-- Benchmark CPU inference and batch throughput with a fixed request dataset.
+Acceptance: reproducible search budgets, controlled data roles and evidence that gains persist.
 
-Acceptance: a versioned service starts from a trusted artifact, predicts reproducibly, and fails
-clearly on bad input or unavailable models.
+## 4. Interpretation and experimental freeze
 
-## 4. Web application
+Add permutation importance/SHAP where appropriate, detailed FP/FN studies and calibrated-score
+assessment. Measure inference latency and memory, define the inspection operating point,
+write the model card, then perform the frozen official-test evaluation.
 
-- Build a React/TypeScript frontend around batch upload and inspection review.
-- Add a threshold control with counts and cost computed from validation observations, clearly
-  distinguished from unlabeled production inputs.
-- Provide a model comparison view, missingness diagnostics and an FP/FN explorer.
-- Add loading/error states, accessibility checks, API integration tests and a production build.
+Acceptance: the selected model, threshold and preprocessing are fixed before test evaluation;
+reported limits reflect the anonymized historical dataset.
 
-Acceptance: a user can run an example, inspect an alert, and understand the measured tradeoffs.
-Do not invent sensor meanings or interpret uncalibrated scores as probabilities.
+## 5. Inference service
 
-## 5. Deployment and portfolio integration
+Add serving/predictor.py and FastAPI/Pydantic endpoints: health, readiness, individual prediction
+and batch prediction. Validate schema and limits, report model version, compare API/local scores
+and package a trusted artifact with Docker.
 
-- Add Docker builds and registry publication, staging verification and deployment workflows.
-- Declare hosting and artifact storage configuration, model compatibility and rollback procedure.
-- Add service metrics and a fixed load benchmark; choose alert thresholds from measured behavior.
-- Deploy the frontend and inference service, then integrate the demo and experiment evidence
-  into the Vercel portfolio.
-- Perform the frozen official-test evaluation after the experimental choices are finalized.
+Acceptance: deterministic inference contract, bad-input handling and API/container tests.
 
-Acceptance: the published demo identifies its model, dataset, runtime limits, measured quality
-and hosting conditions. CI/CD should exercise a real service and deployment path.
+## 6. Professional web application
+
+Build React/TypeScript batch upload and alert review, a diagnostics view and an experiment viewer.
+Clearly distinguish labeled validation tradeoffs from unlabeled production input. Add accessibility,
+loading/error handling, API integration tests and a production build.
+
+Acceptance: a visitor can use an example, inspect an alert and understand the measured tradeoff.
+
+## 7. Cloud and CI/CD
+
+Declare artifact storage and hosting, build/publish container images, test staging, promote models,
+deploy frontend/backend and verify rollback. Integrate infrastructure configuration with versioned
+releases rather than committing generated models or secrets.
+
+Acceptance: automated deployment for a real service, recorded model version and working rollback.
+
+## 8. Operations
+
+Add structured logs, service metrics, fixed load benchmarks, error/latency monitoring, input drift
+checks, hosting budget and maintenance instructions. Measure the demo's practical limits.
+
+Acceptance: health, capacity and failure behavior are inspectable.
+
+## 9. Portfolio integration
+
+Publish the Vercel portfolio case study with demo, figures, results, architecture, GitHub link,
+model/data versions and reproduction steps. Finish the README using measured behavior and
+screenshots of the actual application.
+
+Acceptance: a public example works, the project evidence is understandable and every status
+claimed as complete has been verified.

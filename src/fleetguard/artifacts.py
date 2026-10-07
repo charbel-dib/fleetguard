@@ -35,6 +35,11 @@ def load_model(directory: Path) -> tuple[object, dict]:
         raise ValueError(
             "Model/runtime scikit-learn versions differ; use the recorded environment."
         )
+    if metadata.get("xgboost_version"):
+        import xgboost
+
+        if xgboost.__version__ != metadata["xgboost_version"]:
+            raise ValueError("Model/runtime XGBoost versions differ; use the recorded environment.")
     path = directory / "pipeline.joblib"
     if sha256_file(path) != metadata["pipeline_sha256"]:
         raise ValueError("Model checksum mismatch.")

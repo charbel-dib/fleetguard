@@ -29,6 +29,7 @@ jobs:
       - run: uv run --frozen --extra dev ruff check .
       - run: uv run --frozen --extra dev pytest
       - run: uv run --frozen --extra dev python -m fleetguard.smoke
+      - run: uv run --frozen --extra dev python -m fleetguard.comparison_smoke
       - run: uv run --frozen --extra dev python -m build
       - name: Verify installed wheel independently of src
         shell: bash
@@ -41,3 +42,4 @@ jobs:
           cd /tmp
           /tmp/fleetguard-wheel/bin/python -m fleetguard --help
           /tmp/fleetguard-wheel/bin/python -m fleetguard.smoke
+          /tmp/fleetguard-wheel/bin/python -m fleetguard.comparison_smoke
