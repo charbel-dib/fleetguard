@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv lock --check
+      - run: uv sync --frozen --extra dev
+      - run: uv run --frozen --extra dev ruff format --check .
+      - run: uv run --frozen --extra dev ruff check .
+      - run: uv run --frozen --extra dev pytest
+      - run: uv run --frozen --extra dev python -m fleetguard.smoke
+      - run: uv run --frozen --extra dev python -m build
+      - name: Verify installed wheel independently of src
+        shell: bash
+        run: |
+          uv venv /tmp/fleetguard-wheel --python ${{ matrix.python-version }}
+          uv pip install --python /tmp/fleetguard-wheel/bin/python --no-deps dist/*.whl
+          # Install the exact locked runtime requirements, without the editable project.
+          uv export --frozen --no-dev --no-emit-project --no-hashes -o /tmp/fleetguard-runtime.txt
+          uv pip install --python /tmp/fleetguard-wheel/bin/python -r /tmp/fleetguard-runtime.txt
+          cd /tmp
+          /tmp/fleetguard-wheel/bin/python -m fleetguard --help
+          /tmp/fleetguard-wheel/bin/python -m fleetguard.smoke

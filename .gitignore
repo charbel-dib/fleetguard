@@ -1,0 +1,24 @@
+# Local environments and tools
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+build/
+dist/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+START_HERE.md
+
+# Downloaded data, fitted models and reproducible local outputs
+/data/
+/artifacts/
+/reports/
+*.joblib
+*.log

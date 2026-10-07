@@ -1,0 +1,4 @@
+include README.md START_HERE.md LICENSE uv.lock
+recursive-include configs *.toml
+recursive-include docs *.md *.json *.csv
+recursive-include tests *.py

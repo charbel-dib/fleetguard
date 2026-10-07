@@ -1,0 +1,282 @@
+{
+  "run_id": "20261007T122016Z-1ecc15cc",
+  "result_kind": "development_validation_not_final_test",
+  "config": {
+    "split": {
+      "seed": 42,
+      "n_splits": 5,
+      "validation_fold": 0
+    },
+    "model": {
+      "C": 1.0,
+      "max_iter": 2000,
+      "tol": 0.0001
+    },
+    "cost": {
+      "false_positive": 10,
+      "false_negative": 500
+    }
+  },
+  "source": {
+    "source_url": "https://archive.ics.uci.edu/static/public/421/aps+failure+at+scania+trucks.zip",
+    "source_page": "https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks",
+    "doi": "10.24432/C51S51",
+    "retrieved_at": "2026-10-07T12:10:36.668289+00:00",
+    "archive_sha256": "5504d0402f54faaf97ac0ca085a621645763f5cfea2eb29c592b057d43d4db89",
+    "files": {
+      "aps_failure_training_set.csv": "bb484302e3a3a1c8ef5e1f0129c4dc7cbd58f350867f95b575461ca21ab6b9da",
+      "aps_failure_test_set.csv": "2cdf6f7661c7b4c63333c93cdec36a3a82350176b604a2312cf82799fb2712f3",
+      "aps_failure_description.txt": "57b1eb3c551a678ffc1c8112e5b34c566dd16457642563f58aeb3ca65beeb820"
+    },
+    "integrity_note": "Hashes identify this local snapshot, not a publisher signature."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.18.1",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.7.0",
+      "fleetguard": "0.1.0"
+    }
+  },
+  "split_sha256": "e3a1ee2124c19ec715438d5190ff2bc4abbc543ddcea6749480de5ae5567efde",
+  "uv_lock_sha256": "64fdb6e23d4a028ef12f2ccabe01ec1cbc14ffc82a62bf4b9833ba0a0d7af06e",
+  "training_profile": {
+    "rows": 60000,
+    "features": 170,
+    "negative": 59000,
+    "positive": 1000,
+    "positive_rate": 0.016666666666666666,
+    "missing_fraction": 0.08333480392156863,
+    "all_missing_features": [],
+    "constant_observed_features": [
+      "cd_000"
+    ],
+    "duplicate_feature_rows": 0,
+    "duplicate_groups_with_conflicting_labels": 0
+  },
+  "champion": {
+    "model": "logistic",
+    "selection_partition": "validation",
+    "selection_metric": "cost_then_average_precision"
+  },
+  "models": {
+    "always_negative": {
+      "threshold": 0.5,
+      "training_rows": 48000,
+      "validation_rows": 12000,
+      "fit_seconds": 0.0012188150003566989,
+      "costs": {
+        "false_positive_cost": 10,
+        "false_negative_cost": 500
+      },
+      "validation": {
+        "rows": 12000,
+        "threshold": 0.5,
+        "tn": 11800,
+        "fp": 0,
+        "fn": 200,
+        "tp": 0,
+        "accuracy": 0.9833333333333333,
+        "balanced_accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.016666666666666666,
+        "roc_auc": 0.5,
+        "brier_score": 0.016666666666666666,
+        "cost": 100000,
+        "cost_per_row": 8.333333333333334,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.0
+      },
+      "validation_at_0_5": {
+        "rows": 12000,
+        "threshold": 0.5,
+        "tn": 11800,
+        "fp": 0,
+        "fn": 200,
+        "tp": 0,
+        "accuracy": 0.9833333333333333,
+        "balanced_accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.016666666666666666,
+        "roc_auc": 0.5,
+        "brier_score": 0.016666666666666666,
+        "cost": 100000,
+        "cost_per_row": 8.333333333333334,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.0
+      },
+      "score_semantics": "uncalibrated positive-class model score"
+    },
+    "class_prior": {
+      "threshold": 0.01666666666666667,
+      "training_rows": 48000,
+      "validation_rows": 12000,
+      "fit_seconds": 0.0011029339998458454,
+      "costs": {
+        "false_positive_cost": 10,
+        "false_negative_cost": 500
+      },
+      "validation": {
+        "rows": 12000,
+        "threshold": 0.01666666666666667,
+        "tn": 11800,
+        "fp": 0,
+        "fn": 200,
+        "tp": 0,
+        "accuracy": 0.9833333333333333,
+        "balanced_accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.016666666666666666,
+        "roc_auc": 0.5,
+        "brier_score": 0.01638888888888889,
+        "cost": 100000,
+        "cost_per_row": 8.333333333333334,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.0
+      },
+      "validation_at_0_5": {
+        "rows": 12000,
+        "threshold": 0.5,
+        "tn": 11800,
+        "fp": 0,
+        "fn": 200,
+        "tp": 0,
+        "accuracy": 0.9833333333333333,
+        "balanced_accuracy": 0.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "average_precision": 0.016666666666666666,
+        "roc_auc": 0.5,
+        "brier_score": 0.01638888888888889,
+        "cost": 100000,
+        "cost_per_row": 8.333333333333334,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.0
+      },
+      "score_semantics": "uncalibrated positive-class model score"
+    },
+    "logistic": {
+      "threshold": 0.04088418704644543,
+      "training_rows": 48000,
+      "validation_rows": 12000,
+      "fit_seconds": 17.889466588000232,
+      "costs": {
+        "false_positive_cost": 10,
+        "false_negative_cost": 500
+      },
+      "validation": {
+        "rows": 12000,
+        "threshold": 0.04088418704644543,
+        "tn": 11575,
+        "fp": 225,
+        "fn": 19,
+        "tp": 181,
+        "accuracy": 0.9796666666666667,
+        "balanced_accuracy": 0.9429661016949153,
+        "precision": 0.4458128078817734,
+        "recall": 0.905,
+        "f1": 0.5973597359735974,
+        "average_precision": 0.8007920050871802,
+        "roc_auc": 0.9865665254237289,
+        "brier_score": 0.006365023312091769,
+        "cost": 11750,
+        "cost_per_row": 0.9791666666666666,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.03383333333333333
+      },
+      "validation_at_0_5": {
+        "rows": 12000,
+        "threshold": 0.5,
+        "tn": 11779,
+        "fp": 21,
+        "fn": 71,
+        "tp": 129,
+        "accuracy": 0.9923333333333333,
+        "balanced_accuracy": 0.8216101694915254,
+        "precision": 0.86,
+        "recall": 0.645,
+        "f1": 0.7371428571428571,
+        "average_precision": 0.8007920050871802,
+        "roc_auc": 0.9865665254237289,
+        "brier_score": 0.006365023312091769,
+        "cost": 35710,
+        "cost_per_row": 2.9758333333333336,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.0125
+      },
+      "score_semantics": "uncalibrated positive-class model score"
+    },
+    "logistic_balanced": {
+      "threshold": 0.3287770521068761,
+      "training_rows": 48000,
+      "validation_rows": 12000,
+      "fit_seconds": 36.029900522999924,
+      "costs": {
+        "false_positive_cost": 10,
+        "false_negative_cost": 500
+      },
+      "validation": {
+        "rows": 12000,
+        "threshold": 0.3287770521068761,
+        "tn": 11375,
+        "fp": 425,
+        "fn": 15,
+        "tp": 185,
+        "accuracy": 0.9633333333333334,
+        "balanced_accuracy": 0.9444915254237288,
+        "precision": 0.30327868852459017,
+        "recall": 0.925,
+        "f1": 0.4567901234567901,
+        "average_precision": 0.7657961856392693,
+        "roc_auc": 0.969807627118644,
+        "brier_score": 0.020579442275985602,
+        "cost": 11750,
+        "cost_per_row": 0.9791666666666666,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.050833333333333335
+      },
+      "validation_at_0_5": {
+        "rows": 12000,
+        "threshold": 0.5,
+        "tn": 11525,
+        "fp": 275,
+        "fn": 20,
+        "tp": 180,
+        "accuracy": 0.9754166666666667,
+        "balanced_accuracy": 0.9383474576271187,
+        "precision": 0.3956043956043956,
+        "recall": 0.9,
+        "f1": 0.549618320610687,
+        "average_precision": 0.7657961856392693,
+        "roc_auc": 0.969807627118644,
+        "brier_score": 0.020579442275985602,
+        "cost": 12750,
+        "cost_per_row": 1.0625,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500,
+        "inspection_rate": 0.03791666666666667
+      },
+      "score_semantics": "uncalibrated positive-class model score"
+    }
+  },
+  "official_test_evaluated": false
+}
