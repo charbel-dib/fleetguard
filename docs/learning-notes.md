@@ -109,3 +109,39 @@ La colonne `1` des sorties d'un classifieur n'est pas présumée positive sans c
 Les fichiers `validation_predictions.csv` contiennent les labels, scores, décisions et fractions
 de valeurs manquantes nécessaires à cette première analyse. Les réponses devront venir du run,
 pas d'une description générique de l'algorithme.
+
+## Incrément 2 : arbres, boosting et calibration
+
+Une Random Forest agrège des arbres ajustés sur des échantillons bootstrap et des sous-ensembles
+de variables. L'agrégation limite la variance des arbres individuels. `max_depth` et
+`min_samples_leaf` contraignent leur complexité ; `balanced_subsample` recalcule les poids de
+classes dans chaque échantillon bootstrap. Les arbres n'ont pas besoin de variables standardisées.
+
+Le gradient boosting construit les arbres successivement pour corriger la loss du modèle courant.
+Avec une loss logistique, les gradients dépendent de l'écart entre score probabiliste et label.
+XGBoost utilise gradients et courbure de la loss pour construire et régulariser ses arbres.
+Ces arbres sont additionnés avec un learning rate ; leur rôle diffère du vote d'une forêt.
+
+HGB et XGBoost en mode `hist` discrétisent les variables en bins pour rechercher leurs splits.
+Les valeurs manquantes peuvent suivre une branche apprise, tandis que la forêt de ce benchmark
+reçoit des valeurs imputées et leurs indicateurs. Comparer les méthodes exige de préciser aussi
+ces différences de prétraitement.
+
+La variante `logistic_no_indicator` retire seulement les indicateurs de manque. La variante
+`logistic_log_robust` combine compression logarithmique signée et scaling robuste. Elle peut
+indiquer l'intérêt de cette combinaison, mais n'isole pas l'effet de chaque transformation.
+
+La calibration sigmoïde apprend une transformation des sorties d'un modèle déjà entraîné.
+`FrozenEstimator` empêche de réajuster les arbres HGB pendant cette étape. Une transformation
+strictement croissante conserve le classement des observations et donc leur average precision,
+tout en changeant les valeurs de score et potentiellement le Brier score. Elle n'améliore pas
+automatiquement la décision à seuil optimisé.
+
+Dans cet incrément, quatre usages des données sont séparés : ajustement du modèle, calibration,
+sélection du seuil et mesure des performances. Une bonne loss sur le fitting ou un faible coût
+sur le réglage du seuil ne suffisent pas ; `cv_fold_metrics.csv` mesure les décisions sur le scoring.
+
+Lis `docs/comparison-methodology.md`, puis compare les résultats HGB avant/après calibration,
+la régression avec/sans indicateurs et les erreurs par manque de mesures. Pour expliquer une
+différence, indique quelles observations et quels paramètres ont été utilisés, avant de donner
+une interprétation générale de l'algorithme.

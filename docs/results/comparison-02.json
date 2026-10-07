@@ -1,0 +1,141 @@
+{
+  "run": {
+    "id": "20261007T143440Z-be878e90",
+    "kind": "official_aps",
+    "protocol": "comparison_v1",
+    "status": "complete",
+    "split_sha256": "e3a1ee2124c19ec715438d5190ff2bc4abbc543ddcea6749480de5ae5567efde",
+    "cv_roles_sha256": "88b9ee7a4ec691be1c27dc37729b11c1bfa2784dd465675d2b30e6ca0cc9d8b5",
+    "final_roles_sha256": "957463813d7c74f3d9064a54204e03d8541b00ce49d4c6cee0c3fb376984dd4c"
+  },
+  "config": {
+    "base": {
+      "raw_dir": "data/raw",
+      "runs_dir": "artifacts/comparison",
+      "seed": 42,
+      "n_splits": 5,
+      "validation_fold": 0,
+      "C": 1.0,
+      "max_iter": 2000,
+      "tol": 0.0001,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500
+    },
+    "cv_folds": 3,
+    "seed": 43,
+    "inner_folds": 5,
+    "calibration_fold": 0,
+    "threshold_fold": 1,
+    "n_jobs": 2,
+    "models": [
+      "always_negative",
+      "class_prior",
+      "logistic",
+      "logistic_balanced",
+      "logistic_no_indicator",
+      "logistic_log_robust",
+      "random_forest",
+      "hist_gradient_boosting",
+      "hgb_sigmoid",
+      "xgboost"
+    ],
+    "forest_estimators": 120,
+    "forest_depth": 14,
+    "forest_min_leaf": 3,
+    "hgb_iterations": 150,
+    "hgb_leaves": 15,
+    "hgb_learning_rate": 0.1,
+    "hgb_l2": 1.0,
+    "xgb_estimators": 150,
+    "xgb_depth": 4,
+    "xgb_learning_rate": 0.1,
+    "xgb_subsample": 0.8,
+    "xgb_colsample": 0.8,
+    "xgb_l2": 1.0
+  },
+  "source": {
+    "source_url": "https://archive.ics.uci.edu/static/public/421/aps+failure+at+scania+trucks.zip",
+    "source_page": "https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks",
+    "doi": "10.24432/C51S51",
+    "retrieved_at": "2026-10-07T12:10:36.668289+00:00",
+    "archive_sha256": "5504d0402f54faaf97ac0ca085a621645763f5cfea2eb29c592b057d43d4db89",
+    "files": {
+      "aps_failure_training_set.csv": "bb484302e3a3a1c8ef5e1f0129c4dc7cbd58f350867f95b575461ca21ab6b9da",
+      "aps_failure_test_set.csv": "2cdf6f7661c7b4c63333c93cdec36a3a82350176b604a2312cf82799fb2712f3",
+      "aps_failure_description.txt": "57b1eb3c551a678ffc1c8112e5b34c566dd16457642563f58aeb3ca65beeb820"
+    },
+    "integrity_note": "Hashes identify this local snapshot, not a publisher signature."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.18.1",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.7.0",
+      "fleetguard": "0.2.0",
+      "matplotlib": "3.11.2",
+      "xgboost-cpu": "3.4.1"
+    }
+  },
+  "champion": {
+    "model": "xgboost",
+    "selection_partition": "development_cross_validation",
+    "selection_metric": "scoring_cost_per_row_then_mean_fold_average_precision"
+  },
+  "validation": {
+    "model": "xgboost",
+    "frozen_threshold": {
+      "rows": 12000,
+      "threshold": 0.03765914961695671,
+      "tn": 11619,
+      "fp": 181,
+      "fn": 17,
+      "tp": 183,
+      "accuracy": 0.9835,
+      "balanced_accuracy": 0.9498305084745763,
+      "precision": 0.5027472527472527,
+      "recall": 0.915,
+      "f1": 0.648936170212766,
+      "average_precision": 0.844737675552948,
+      "roc_auc": 0.987297033898305,
+      "brier_score": 0.00560317070567222,
+      "cost": 10310,
+      "cost_per_row": 0.8591666666666666,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.030333333333333334
+    },
+    "threshold_0.5": {
+      "rows": 12000,
+      "threshold": 0.5,
+      "tn": 11783,
+      "fp": 17,
+      "fn": 65,
+      "tp": 135,
+      "accuracy": 0.9931666666666666,
+      "balanced_accuracy": 0.8367796610169491,
+      "precision": 0.8881578947368421,
+      "recall": 0.675,
+      "f1": 0.7670454545454546,
+      "average_precision": 0.844737675552948,
+      "roc_auc": 0.987297033898305,
+      "brier_score": 0.00560317070567222,
+      "cost": 32670,
+      "cost_per_row": 2.7225,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.012666666666666666
+    }
+  },
+  "champion_fitting_rows": 28800,
+  "champion_reserved_calibration_rows": 9600,
+  "champion_calibration_role_used": false,
+  "champion_threshold_rows": 9600,
+  "uv_lock_sha256": "1ef6ef20239e9a43a865be6b27301fc40713a7608d03b6eecbcae9899df3d7b2",
+  "cv_summary_sha256": "542d0b58e24795f959b0a25ca8672abac3abbdc3c6dc3ac34ee1757d5cd30aed",
+  "official_test_evaluated": false
+}

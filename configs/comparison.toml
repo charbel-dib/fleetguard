@@ -1,0 +1,52 @@
+[data]
+raw_dir = "data/raw"
+
+[output]
+runs_dir = "artifacts/comparison"
+
+# Preserve the increment-1 development/validation assignment.
+[split]
+seed = 42
+n_splits = 5
+validation_fold = 0
+
+[comparison]
+cv_folds = 3
+seed = 43
+inner_folds = 5
+calibration_fold = 0
+threshold_fold = 1
+n_jobs = 2
+models = [
+  "always_negative", "class_prior", "logistic", "logistic_balanced",
+  "logistic_no_indicator", "logistic_log_robust", "random_forest",
+  "hist_gradient_boosting", "hgb_sigmoid", "xgboost",
+]
+
+[logistic]
+C = 1.0
+max_iter = 2000
+tol = 0.0001
+
+[forest]
+n_estimators = 120
+max_depth = 14
+min_samples_leaf = 3
+
+[boosting]
+max_iter = 150
+max_leaf_nodes = 15
+learning_rate = 0.1
+l2_regularization = 1.0
+
+[xgboost]
+n_estimators = 150
+max_depth = 4
+learning_rate = 0.1
+subsample = 0.8
+colsample_bytree = 0.8
+reg_lambda = 1.0
+
+[cost]
+false_positive = 10
+false_negative = 500

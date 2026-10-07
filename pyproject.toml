@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fleetguard"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cost-aware classification of APS failures in Scania operational data."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -15,6 +15,9 @@ dependencies = [
   "pandas>=2.2,<3",
   "scikit-learn>=1.8,<1.9",
   "joblib>=1.4,<2",
+  "matplotlib>=3.9,<4",
+  "xgboost-cpu>=3.0,<4; sys_platform == 'linux' or sys_platform == 'win32'",
+  "xgboost>=3.0,<4; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
