@@ -40,6 +40,10 @@ def build_parser() -> argparse.ArgumentParser:
         "train", help="Fit baselines; select thresholds using validation only."
     )
     training.add_argument("--config", type=Path, default=Path("configs/baseline.toml"))
+    comparison = commands.add_parser(
+        "compare", help="Compare models using train-only CV and frozen thresholds."
+    )
+    comparison.add_argument("--config", type=Path, default=Path("configs/comparison.toml"))
     evaluation = commands.add_parser(
         "evaluate-test", help="Evaluate the frozen champion on official test."
     )
@@ -85,6 +89,13 @@ def _dispatch(args: argparse.Namespace) -> None:
         output = evaluate_test(load_config(args.config), args.run)
         logger.info("Final-test results: %s", output)
         print(json.dumps(read_json(output / "metrics.json"), indent=2))
+    elif args.command == "compare":
+        from fleetguard.comparison import compare
+        from fleetguard.comparison_config import load_comparison_config
+
+        run = compare(load_comparison_config(args.config))
+        logger.info("Comparison complete: %s", run)
+        print((run / "comparison_report.md").read_text(encoding="utf-8"))
     elif args.command == "predict":
         require_complete(args.run)
         if args.output.exists():
