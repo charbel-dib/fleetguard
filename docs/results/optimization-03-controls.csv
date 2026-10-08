@@ -1,0 +1,6 @@
+model,status,error,max_iter
+xgboost_reference,complete,,
+logistic,complete,,100.0
+logistic_robust,failed_convergence,"Liblinear failed to converge, increase the number of iterations.",100.0
+logistic_log,complete,,100.0
+logistic_oversampled,complete,,100.0

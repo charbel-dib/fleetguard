@@ -1,0 +1,16 @@
+[optimization]
+# Reuse the original outer split, CV roles, challenge cost and logistic reference.
+comparison_config = "comparison.toml"
+runs_dir = "artifacts/optimization"
+tracking_dir = "artifacts/tracking"
+xgb_trials = 6
+mlp_trials = 4
+sampler_seed = 44
+mlp_max_epochs = 24
+mlp_patience = 5
+mlp_inner_folds = 5
+control_max_iter = 100
+stability_seeds = [43, 44, 45]
+learning_fractions = [0.25, 0.5, 1.0]
+# Applies to both XGBoost and MLP training. Use "cpu" for a machine without CUDA.
+device = "cuda"

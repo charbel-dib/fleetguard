@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "release_id": "20261007T210839Z-3b5571e8",
+  "model": "xgboost_release",
+  "threshold": 0.002490004285364349,
+  "frozen_at_utc": "2026-10-07T21:08:40.510353+00:00",
+  "threshold_source": "development_threshold_role",
+  "official_test_used_for_selection": false,
+  "files": {
+    "source.json": "8132cd9dab4bf90c5033567811804aaf263a6c08d9dde587b1c24f3a66cee7a6",
+    "config.json": "0aadd7f2c5f50de9274982080541c13630783ed756cbf22edb8e88034b607abd",
+    "split.csv": "e3a1ee2124c19ec715438d5190ff2bc4abbc543ddcea6749480de5ae5567efde",
+    "final_roles.csv": "957463813d7c74f3d9064a54204e03d8541b00ce49d4c6cee0c3fb376984dd4c",
+    "calibration_roles.csv": "181a02345aa3f43c9ccba16bf7ddc6c8010cc8d6fde8017b22bb47b48c8ca5ba",
+    "champion.json": "17ed4217e8b62e12342b6efa8b7455f0ba1c43898ba343646f62ae8232b2aceb",
+    "decision.json": "1a2489bde11ae57ab1b82dc073e0d9db668f1573ea3d78eb3723f6dff2f4d5bc",
+    "policy_thresholds.csv": "290e2d177019500ff18c8955c57d45b23e46f08a4712943f745c310c05390a01",
+    "xgboost_release/pipeline.joblib": "ff37351a1d201173ffdf83fddc8848f1dc8fb1b264fe0976c0301e4064f08f93",
+    "xgboost_release/metadata.json": "a3d433e9717e06bdc2f226d107b1d293673a229f7c3e50ef9d47a55e7bf7a6e6"
+  }
+}

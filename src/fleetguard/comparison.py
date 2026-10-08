@@ -64,6 +64,9 @@ def fit_and_tune(features, target, config: ComparisonConfig, roles: dict) -> dic
                 raise RuntimeError(
                     f"{name} did not converge; no candidate will be published."
                 ) from exc
+            if name == "xgboost":
+                # Fit may use CUDA; tuning/scoring and deployed inputs are CPU frames.
+                model.set_params(classifier__device="cpu")
             durations[name] = time.perf_counter() - started
             fitted[name] = model
         if "hgb_sigmoid" in config.models:

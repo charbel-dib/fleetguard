@@ -145,3 +145,58 @@ Lis `docs/comparison-methodology.md`, puis compare les résultats HGB avant/apr�
 la régression avec/sans indicateurs et les erreurs par manque de mesures. Pour expliquer une
 différence, indique quelles observations et quels paramètres ont été utilisés, avant de donner
 une interprétation générale de l'algorithme.
+
+
+## Incrément 3 — ce que la recherche adaptative change
+
+Un seuil réglé hors du scoring protège l'évaluation de ce seuil pour un candidat fixé. Quand
+Optuna réutilise les folds pour proposer et sélectionner des hyperparamètres, leurs scores ne
+restent pas indépendants de la sélection. C'est pourquoi le meilleur coût CV n'est pas présenté
+comme une estimation finale. Nested CV et test officiel sont des outils distincts, avec des coûts
+et des usages différents ; cette recherche bornée n'est pas une nested CV.
+
+Le MLP choisit les epochs dans fit, puis refit tout fit avant calibration. Choisir les epochs
+sur calibration et calibrer ensuite sur les mêmes labels aurait créé une dépendance évitable.
+BCEWithLogitsLoss combine sigmoid et BCE de manière stable ; la pondération des positifs change
+l'objectif et les scores bruts, d'où l'intérêt de mesurer une calibration séparée. Dropout est
+actif en `train()` et désactivé en `eval()` ; `no_grad()` évite les graphes durant l'inférence.
+
+Les comparaisons `logistic_robust` et `logistic_log` isolent un changement chacune. Le variant
+`logistic_log_robust` précédent combinait deux changements ; il ne permettait pas d'attribuer un
+gain à un seul. L'oversampling par duplication n'est pas SMOTE ; il peut modifier les poids
+implicites et la calibration. Il reste dans fit, après prétraitement appris sur les lignes originales.
+
+Une courbe par epoch mesure la progression d'un entraînement ; une courbe par taille de données
+mesure l'effet de disposer de plus de lignes d'entraînement à paramètres fixes. Les deux sont
+livrées, avec des axes et rôles explicitement différents. Une sensibilité aux partitions ne
+mesure pas toutes les initialisations aléatoires du réseau.
+
+MLflow suit les essais et leurs artefacts ; Optuna décide les paramètres à essayer. Un run
+`FINISHED` dans MLflow ne prouve pas à lui seul que le protocole est valide : les manifestes,
+les tests de non-interférence des labels et la documentation restent nécessaires.
+
+## Update 04 — from scores to a frozen decision
+
+- A calibration map can improve score scaling without changing ranking or alerts. On this release,
+  validation Brier fell from 0.013906 to 0.007209, while FP/FN remained 410/11.
+- Calibration selection uses grouped OOF within the assigned calibration role. Hyperparameter
+  search had already seen these development rows in CV, so the official test is the final benchmark.
+- The calibrated empirical threshold (0.002490) differs from the raw threshold (0.176826). Changing
+  the numeric scale does not imply the policy became more aggressive; compare actual decisions.
+- Inspection budgets are fitted on threshold-role data. The 3% scenario flagged 2.92% on validation
+  and recalled 87% of positives. A fixed threshold cannot guarantee 3% on a shifted future batch.
+- Permutation measures sensitivity, not cause. Column aa_000 had the largest measured increase in
+  fixed-threshold cost, while ck_000 affected AP more strongly. Correlated blocks can hide importance.
+- The missingness slices matter: 8/11 validation FN occurred below 5% missingness. Among 84 rows
+  above 50% missingness, there were 24 FP and **zero positives**; no APS-recall conclusion follows.
+- A 33,497-byte model file does not imply a 33-KB inference process. Whole-process RSS includes
+  the interpreter, dataframe/scientific libraries and native buffers. HTTP latency is not measured yet.
+- After freeze, official test gave 475 FP, 16 FN, recall 95.73%, precision 43.05%, AP 0.88444 and
+  challenge cost 12,750 on 16,000 rows (375 positives). No model or threshold change followed.
+- Bootstrap intervals are conditional on the fixed model/snapshot. Complete duplicate-feature
+  groups are resampled together, but unavailable truck IDs prevent modeling vehicle dependence.
+- Once test outcomes are public, subsequent model iteration cannot present that same test as fresh
+  unseen evidence. The next increments build serving, UI and deployment around this frozen release.
+
+Read [release methodology](release-methodology.md), [ADR 0004](decisions/0004-freeze-calibration-policy-and-consume-test-once.md)
+and the [model card](results/release-04.md).

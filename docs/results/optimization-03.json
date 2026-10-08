@@ -1,0 +1,304 @@
+{
+  "run_id": "20261007T184315Z-a4e5b402",
+  "kind": "official_aps",
+  "protocol": "optimization_v1",
+  "source": {
+    "source_url": "https://archive.ics.uci.edu/static/public/421/aps+failure+at+scania+trucks.zip",
+    "source_page": "https://archive.ics.uci.edu/dataset/421/aps+failure+at+scania+trucks",
+    "doi": "10.24432/C51S51",
+    "retrieved_at": "2026-10-07T12:10:36.668289+00:00",
+    "archive_sha256": "5504d0402f54faaf97ac0ca085a621645763f5cfea2eb29c592b057d43d4db89",
+    "files": {
+      "aps_failure_training_set.csv": "bb484302e3a3a1c8ef5e1f0129c4dc7cbd58f350867f95b575461ca21ab6b9da",
+      "aps_failure_test_set.csv": "2cdf6f7661c7b4c63333c93cdec36a3a82350176b604a2312cf82799fb2712f3",
+      "aps_failure_description.txt": "57b1eb3c551a678ffc1c8112e5b34c566dd16457642563f58aeb3ca65beeb820"
+    },
+    "integrity_note": "Hashes identify this local snapshot, not a publisher signature."
+  },
+  "environment": {
+    "python": "3.12.14",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "packages": {
+      "numpy": "2.5.3",
+      "pandas": "2.3.3",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.18.1",
+      "joblib": "1.6.0",
+      "threadpoolctl": "3.7.0",
+      "fleetguard": "0.3.0",
+      "optuna": "4.9.0",
+      "mlflow": "3.17.0",
+      "torch": "2.14.1+cpu",
+      "imbalanced-learn": "0.14.2",
+      "matplotlib": "3.11.2",
+      "xgboost-cpu": "3.4.1"
+    }
+  },
+  "config": {
+    "comparison": {
+      "base": {
+        "raw_dir": "data/raw",
+        "runs_dir": "artifacts/optimization",
+        "seed": 42,
+        "n_splits": 5,
+        "validation_fold": 0,
+        "C": 1.0,
+        "max_iter": 2000,
+        "tol": 0.0001,
+        "false_positive_cost": 10,
+        "false_negative_cost": 500
+      },
+      "cv_folds": 3,
+      "seed": 43,
+      "inner_folds": 5,
+      "calibration_fold": 0,
+      "threshold_fold": 1,
+      "n_jobs": 2,
+      "models": [
+        "always_negative",
+        "class_prior",
+        "logistic",
+        "logistic_balanced",
+        "logistic_no_indicator",
+        "logistic_log_robust",
+        "random_forest",
+        "hist_gradient_boosting",
+        "hgb_sigmoid",
+        "xgboost"
+      ],
+      "forest_estimators": 120,
+      "forest_depth": 14,
+      "forest_min_leaf": 3,
+      "hgb_iterations": 150,
+      "hgb_leaves": 15,
+      "hgb_learning_rate": 0.1,
+      "hgb_l2": 1.0,
+      "xgb_estimators": 150,
+      "xgb_depth": 4,
+      "xgb_learning_rate": 0.1,
+      "xgb_subsample": 0.8,
+      "xgb_colsample": 0.8,
+      "xgb_l2": 1.0
+    },
+    "tracking_dir": "artifacts/tracking",
+    "xgb_trials": 6,
+    "mlp_trials": 4,
+    "sampler_seed": 44,
+    "mlp_max_epochs": 24,
+    "mlp_patience": 5,
+    "mlp_inner_folds": 5,
+    "control_max_iter": 100,
+    "stability_seeds": [
+      43,
+      44,
+      45
+    ],
+    "learning_fractions": [
+      0.25,
+      0.5,
+      1.0
+    ],
+    "device": "cpu"
+  },
+  "champion": {
+    "model": "xgboost_tuned",
+    "selection_partition": "development_search_cross_validation",
+    "selection_metric": "cost_per_row_then_mean_fold_average_precision",
+    "family": "xgboost",
+    "params": {
+      "n_estimators": 220,
+      "max_depth": 2,
+      "learning_rate": 0.1956781268179795,
+      "subsample": 0.6414857690285857,
+      "colsample_bytree": 0.6453903467416517,
+      "reg_lambda": 13.41145053932637,
+      "class_weight": "balanced"
+    },
+    "selected_trial": 4
+  },
+  "selected_parameters": {
+    "xgboost_tuned": {
+      "family": "xgboost",
+      "params": {
+        "n_estimators": 220,
+        "max_depth": 2,
+        "learning_rate": 0.1956781268179795,
+        "subsample": 0.6414857690285857,
+        "colsample_bytree": 0.6453903467416517,
+        "reg_lambda": 13.41145053932637,
+        "class_weight": "balanced"
+      },
+      "selected_trial": 4
+    },
+    "mlp_tuned": {
+      "family": "mlp",
+      "params": {
+        "width": 64,
+        "layers": 2,
+        "dropout": 0.1081502508768857,
+        "learning_rate": 0.0011436176308594068,
+        "weight_decay": 0.0002734976017718086,
+        "batch_size": 1024
+      },
+      "selected_trial": 1
+    },
+    "xgboost_reference": {
+      "family": "xgboost",
+      "params": {
+        "n_estimators": 150,
+        "max_depth": 4,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "reg_lambda": 1.0,
+        "class_weight": "none"
+      }
+    },
+    "logistic": {
+      "family": "logistic",
+      "params": {}
+    },
+    "logistic_robust": {
+      "family": "logistic_robust",
+      "params": {}
+    },
+    "logistic_log": {
+      "family": "logistic_log",
+      "params": {}
+    },
+    "logistic_oversampled": {
+      "family": "logistic_oversampled",
+      "params": {}
+    }
+  },
+  "validation": {
+    "model": "xgboost_tuned",
+    "frozen_threshold": {
+      "rows": 12000,
+      "threshold": 0.1768258512020111,
+      "tn": 11390,
+      "fp": 410,
+      "fn": 11,
+      "tp": 189,
+      "accuracy": 0.9649166666666666,
+      "balanced_accuracy": 0.9551271186440677,
+      "precision": 0.31552587646076796,
+      "recall": 0.945,
+      "f1": 0.47309136420525655,
+      "average_precision": 0.8135889740452056,
+      "roc_auc": 0.9875792372881356,
+      "brier_score": 0.013906244547418477,
+      "cost": 9600,
+      "cost_per_row": 0.8,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.049916666666666665
+    },
+    "threshold_0_5": {
+      "rows": 12000,
+      "threshold": 0.5,
+      "tn": 11604,
+      "fp": 196,
+      "fn": 24,
+      "tp": 176,
+      "accuracy": 0.9816666666666667,
+      "balanced_accuracy": 0.9316949152542373,
+      "precision": 0.4731182795698925,
+      "recall": 0.88,
+      "f1": 0.6153846153846154,
+      "average_precision": 0.8135889740452056,
+      "roc_auc": 0.9875792372881356,
+      "brier_score": 0.013906244547418477,
+      "cost": 13960,
+      "cost_per_row": 1.1633333333333333,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.031
+    }
+  },
+  "controls": [
+    {
+      "model": "xgboost_reference",
+      "status": "complete",
+      "error": "",
+      "max_iter": ""
+    },
+    {
+      "model": "logistic",
+      "status": "complete",
+      "error": "",
+      "max_iter": 100.0
+    },
+    {
+      "model": "logistic_robust",
+      "status": "failed_convergence",
+      "error": "Liblinear failed to converge, increase the number of iterations.",
+      "max_iter": 100.0
+    },
+    {
+      "model": "logistic_log",
+      "status": "complete",
+      "error": "",
+      "max_iter": 100.0
+    },
+    {
+      "model": "logistic_oversampled",
+      "status": "complete",
+      "error": "",
+      "max_iter": 100.0
+    }
+  ],
+  "development_rows": 48000,
+  "retained_validation_rows": 12000,
+  "official_test_evaluated": false,
+  "search_scores_are_independent": false,
+  "uv_lock_sha256": "ab6b7d76c35eff216ff47a6cd9d568b5e5cd36063bd015f54dbb248b3c36e45a",
+  "artifact_checksums": {
+    "split.csv": "e3a1ee2124c19ec715438d5190ff2bc4abbc543ddcea6749480de5ae5567efde",
+    "cv_roles.csv": "88b9ee7a4ec691be1c27dc37729b11c1bfa2784dd465675d2b30e6ca0cc9d8b5",
+    "final_roles.csv": "957463813d7c74f3d9064a54204e03d8541b00ce49d4c6cee0c3fb376984dd4c",
+    "diagnostic_roles.csv": "06dbcca2c2c15abc37e9a664aa51b27d430d3246f8ecf2804eb5a881f97b2a79",
+    "cv_summary.csv": "ee483a5a8e35f9b8a2b1df154b38a9d3174c2756deb174c40af2a7ddb60cf7a5",
+    "trials.csv": "0bfdab5743948fd7189dfa2c685a64f4c136f4b0dc325eee28e6f45b8f88670e",
+    "stability.csv": "3ca7121ba63ef40b424ae3289d6e5074bb432b99a83145ecd375946f9521fa87",
+    "learning_curves.csv": "7fecac1cd8fcb75a839fe0033c9eb4969cc70951242c864318a5a4841677e299",
+    "control_status.csv": "1307d062f877b7ce4e3df1e269d809c4707028b0b0fafd89f992f746f93ce755"
+  },
+  "source_code_sha256": {
+    "src/fleetguard/__init__.py": "0b2b3ebd7c5e7e4e87b2fb2f77c821d20388d2e006ca869cc838144e39b6ed33",
+    "src/fleetguard/__main__.py": "cd55a1fd7ab66edd104bab113e8de5a8907a9820ffe3173b75fec4196aee4a3f",
+    "src/fleetguard/artifacts.py": "fdbf2817564a5e3131d6accf5101bf0fb4598bbade94cfb9800a581f7d9ee152",
+    "src/fleetguard/cli.py": "e48d19bb89be2a3905f0dfc5b11bcf2289a9147ec0850a17754ffac98629d85f",
+    "src/fleetguard/comparison.py": "efe54f6e376d4447ebdfdda38edfd6bc6ae8b7c12fd2ff4f61e6eb8d9c8f5791",
+    "src/fleetguard/comparison_config.py": "c9501c8ac0e7ff01dc74b46bc323634b1606f84d0611d681205b7f386203c846",
+    "src/fleetguard/comparison_models.py": "de26f871c74315478e5be18ab41a32bd9749c27b9367871b7ab6b7d5224901a8",
+    "src/fleetguard/comparison_report.py": "3655c61aee37151f2bac10cbe117b034875fe53eab71b996524cf56786037bf2",
+    "src/fleetguard/comparison_smoke.py": "ff5f4be67c02bdc88c3b2ca66d8c7f8cacacd2887b0f29a795f84cee7ba049fb",
+    "src/fleetguard/comparison_splits.py": "c3b122b98435c8cecab45cbac0fb6e434bae00fc84c9f56a02f9822206ed1d47",
+    "src/fleetguard/config.py": "c92ae12fdb8d42b39a3935e1f6364a14a8455348bc8006a5261302a62aa0307f",
+    "src/fleetguard/data.py": "d91b3aaf65d629ecf14edb54e0288adefd48beff08cd697ce7c604edfc202745",
+    "src/fleetguard/diagnostics.py": "7354a99c8c7ed74fb9e144d1846bb51c30309c0be74e711d170fa155bc970cea",
+    "src/fleetguard/download.py": "06cdcddd5e6d441bcf45889c07561aa532ec43ad3bdf43f153f0a0846f7c3883",
+    "src/fleetguard/evaluate.py": "29ef8cdb90eeb9e0b1cd789b7f80e17c63e8f65b145e4f28c8337268ecd12f4e",
+    "src/fleetguard/experiment.py": "d9549da8101312faf0a1726c538e2f9e406dc9444ea162dcb2847cbe23a1ecfb",
+    "src/fleetguard/io.py": "0f5a5279996da509f1c983e8cd6d15c4cdd0e31d832ca7f2508d7930bad8c00e",
+    "src/fleetguard/metrics.py": "c1d05e2e6a9baa6418d5f6a5ffc04ddd94a1496af164106049a1064e63ebcb39",
+    "src/fleetguard/models.py": "0a19106091a356215e4159124a1fde3f6b976d23f192efc1f549fc5d836ed6e0",
+    "src/fleetguard/optimization.py": "ec7e91282c2279a138dd27a4b9e645db04beb83a64b0939a1bf023c98f6bcef5",
+    "src/fleetguard/optimization_config.py": "dc0290900d72fed3be7743853c622acf7e09af870dfcb5f5cef47e8fffc4a223",
+    "src/fleetguard/optimization_models.py": "1e1e9367cd84e30bd885e0015058b32f8d415e729847d53f77039b996a2944a8",
+    "src/fleetguard/optimization_report.py": "4254d9f476d738f3181cf89c84eaad3a73d37674b689fdaa69957fc125ad85d4",
+    "src/fleetguard/optimization_smoke.py": "5b03c7339246f8967d633b0d0e3443aff732d7a98693284740d59bcc36de2df0",
+    "src/fleetguard/smoke.py": "610ba55fe56047c166380962d167c2825944b6b2e70360243157d67358ab48c7",
+    "src/fleetguard/splits.py": "5d2089b13d23b686d5388512893f2a5d27ac1c9ac3a90132578151a3f60a265a",
+    "src/fleetguard/torch_model.py": "329dec8a11c372b052dce07575d322c01bfc867bb7a2aebe67e2241e31f8f416",
+    "src/fleetguard/tracking.py": "ad31e6651647db80a4d402e7d79e900bb1fd1615867b32e3343f6b4fd1a638ff"
+  },
+  "limitations": [
+    "CV scoring folds reused by search; selection optimism",
+    "Retained validation was inspected in previous increments",
+    "Stability varies partition seeds, with model seed held fixed",
+    "Small trial/epoch budget; no global optimum claim",
+    "RobustScaler-only logistic control excluded for non-convergence at 100 iterations"
+  ]
+}

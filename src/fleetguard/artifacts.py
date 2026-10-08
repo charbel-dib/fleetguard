@@ -40,6 +40,14 @@ def load_model(directory: Path) -> tuple[object, dict]:
 
         if xgboost.__version__ != metadata["xgboost_version"]:
             raise ValueError("Model/runtime XGBoost versions differ; use the recorded environment.")
+    if metadata.get("torch_version"):
+        try:
+            import torch
+        except ModuleNotFoundError as exc:
+            raise RuntimeError("This MLP artifact requires FleetGuard's research extra.") from exc
+
+        if torch.__version__ != metadata["torch_version"]:
+            raise ValueError("Model/runtime PyTorch versions differ; use the recorded environment.")
     path = directory / "pipeline.joblib"
     if sha256_file(path) != metadata["pipeline_sha256"]:
         raise ValueError("Model checksum mismatch.")

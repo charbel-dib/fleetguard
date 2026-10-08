@@ -1,47 +1,56 @@
 # FleetGuard — checklist jusqu'au portfolio
 
-Dernière mise à jour : incrément 2. Les cases décrivent des livrables vérifiables.
-Une implémentation validée ici et un push confirmé sur ton compte sont deux étapes distinctes.
+Dernière mise à jour : incrément 4. L'update 03 et son hotfix sont déclarés terminés par toi.
+Les expériences/contrôles de référence sont vérifiés ici ; une CI GitHub distante n'est pas
+observée directement. Le guide du nouvel update part d'un main propre, PR précédente intégrée.
 
-- [x] **1. Données et baselines** : acquisition Scania, contrôles, split reproductible,
-  pipelines logistiques, métriques de coût, inférence batch, CI et premier push confirmé.
-- [x] **2. Comparaison initiale** : CV sur le développement, rôles séparés pour calibration
-  et seuil, arbres/boosting, ablations initiales, diagnostic des erreurs et figures.
-- [ ] **2b. Intégration GitHub de cet update** : appliquer les changements, vérifier localement,
-  pousser `feat/model-comparison`, obtenir une CI verte, puis fusionner la PR vers `main`.
-- [ ] **3. Optimisation et couverture ML** : recherche Optuna à budget fixé, suivi MLflow,
-  ablations complémentaires, rééchantillonnage uniquement dans les folds, MLP PyTorch,
-  courbes d'apprentissage et stabilité sur plusieurs seeds.
-- [ ] **4. Interprétation et décision finale** : importance/permutation ou SHAP selon le modèle,
-  analyse FP/FN, calibration mesurée, contraintes d'inspection et de latence, modèle figé,
-  évaluation unique sur le test officiel et model card.
-- [ ] **5. Service d'inférence** : FastAPI/Pydantic, health/readiness, prédiction unitaire et batch,
-  limites d'entrée, version du modèle, tests de contrat et image Docker.
+- [x] **1. Données et baselines** : snapshot Scania, contrôles, split groupé, logistiques,
+  coût du challenge, inférence batch, CI et premier push confirmé.
+- [x] **2. Comparaison initiale** : rôles fit/calibration/seuil/score séparés, arbres/boosting,
+  ablations initiales, diagnostics et résultats mesurés.
+- [x] **2b. Environnement Windows** : venv/cache hors OneDrive et mode copy, reprise confirmée.
+- [x] **3. Optimisation et couverture ML** : Optuna à budget fixé, MLflow SQLite local,
+  ablations, oversampling dans fit, MLP PyTorch avec arrêt interne,
+  courbes par taille/epoch et stabilité des partitions sur trois seeds.
+- [x] **3a. Correctif Windows du smoke de recherche** : worker séparé, nettoyage SQLite
+  après sa fermeture, test de régression ; incrément déclaré terminé.
+- [x] **4. Interprétation et décision finale — référence** : calibration du champion XGBoost
+  sur rôle réservé, analyse FP/FN et missingness, permutation simple/groupée, budgets
+  d'inspection, benchmark CPU, freeze vérifié, évaluation officielle unique et model card.
+- [ ] **4b. Intégration de cet update sur ton dépôt** : appliquer le delta, obtenir les contrôles
+  verts, auditer ta release locale et reproduire le protocole final sans retuning, puis commit,
+  push `feat/frozen-model-release`, PR, CI Linux/Windows verte et fusion vers main.
+- [ ] **5. Service d'inférence** : FastAPI/Pydantic, health/readiness, prédiction unitaire/batch,
+  limites d'entrée, identité/version du modèle, contrats et Docker.
 - [ ] **6. Interface professionnelle** : React/TypeScript, import CSV, revue des alertes,
-  diagnostics de données, comparaison des expériences, accessibilité et tests de parcours.
-- [ ] **7. Cloud et CI/CD** : artefacts versionnés, stockage, infrastructure déclarée,
-  staging, promotion du modèle, déploiement frontend/backend et rollback vérifié.
-- [ ] **8. Exploitation** : logs structurés, métriques, tests de charge, erreurs et latence,
-  contrôles de dérive, budget d'hébergement et procédure de maintenance.
-- [ ] **9. Portfolio Vercel** : démonstration utilisable, captures ou vidéo, résultats et limites,
-  architecture, liens GitHub et app, README final et instructions reproductibles.
+  diagnostics, expériences, accessibilité et tests des parcours.
+- [ ] **7. Cloud et CI/CD** : artefacts et stockage versionnés, infrastructure déclarée,
+  staging, promotion du modèle, frontend/backend déployés et rollback vérifié.
+- [ ] **8. Exploitation** : logs/métriques, charge, erreurs/latence, dérive,
+  budget d'hébergement et maintenance.
+- [ ] **9. Portfolio Vercel** : démonstration utilisable, captures/vidéo, résultats/limites,
+  architecture, liens GitHub/app, README final et reproduction.
 
-## Règle pour chaque prochain update
+## Règle de livraison et GitHub
 
-1. Livrer uniquement les fichiers ajoutés ou modifiés depuis le dernier incrément fourni.
-2. Mettre à jour cette checklist, en distinguant code testé et push/CI confirmés par toi.
-3. Créer une branche fonctionnelle sur un `main` à jour avant d'appliquer l'archive.
-4. Exécuter les contrôles indiqués et examiner le diff avant le commit.
-5. Pousser la branche, vérifier la CI et fusionner la PR ; revenir ensuite sur `main`.
+1. Livrer uniquement les fichiers ajoutés/modifiés depuis le dernier incrément fourni.
+2. Inclure cette checklist globale dans chaque update.
+3. Partir d'un main propre et à jour, PR précédente intégrée, puis créer une branche fonctionnelle.
+4. Copier le delta, installer, vérifier et exécuter le protocole prévu avant le commit.
+5. Examiner le diff indexé, pousser la branche, vérifier la CI et fusionner ; revenir sur main.
 
-Les fichiers de données, les environnements et les modèles produits localement restent ignorés.
-Les petites synthèses et figures d'expériences réellement exécutées peuvent être versionnées.
+Données, modèles, environnements et bases/reçus restent locaux et ignorés. Les synthèses et figures
+réellement mesurées sont versionnées. Les futures étapes servent/déploient la release figée ;
+le test officiel désormais évalué ne doit pas devenir un outil d'ajustement du modèle.
+Le reçu partagé bloque les répétitions accidentelles dans la même copie du snapshot.
 
 ## Critère « prêt pour le portfolio »
 
-Toutes les étapes 1 à 9 sont vérifiées. La démonstration doit permettre à un visiteur d'essayer
-un exemple, comprendre la décision et consulter les expériences. Les performances publiées
-doivent indiquer leur partition, le modèle, le seuil et les limites du dataset.
+Toutes les étapes sont vérifiées. Un visiteur peut essayer un exemple, comprendre la décision
+et consulter des expériences traçables. Les performances publiées indiquent partition, modèle,
+seuil, hypothèses et limites. La présentation distingue diagnostic APS historique et prévision
+future de panne. Le transfert à une autre flotte et les décisions de maintenance réelle demandent
+une validation externe.
 
-Le modèle exact du GPU et sa VRAM seront vérifiés avant de configurer le MLP. Le benchmark
-de cet incrément fonctionne sur CPU ; aucune installation CUDA n'est nécessaire pour lui.
+Le modèle exact/VRAM/driver du GPU restent à vérifier avant une configuration CUDA.
+Tout le protocole livré fonctionne sur CPU ; le service n'aura pas besoin d'entraîner au démarrage.

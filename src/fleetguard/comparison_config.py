@@ -30,6 +30,7 @@ class ComparisonConfig:
     calibration_fold: int = 0
     threshold_fold: int = 1
     n_jobs: int = 2
+    device: str = "cpu"
     models: tuple[str, ...] = MODEL_NAMES
     forest_estimators: int = 120
     forest_depth: int = 14
@@ -46,6 +47,8 @@ class ComparisonConfig:
     xgb_l2: float = 1.0
 
     def __post_init__(self) -> None:
+        if self.device not in {"cpu", "cuda"}:
+            raise ValueError("device must be cpu or cuda.")
         if self.cv_folds < 2 or self.inner_folds < 3:
             raise ValueError("Comparison requires cv_folds >= 2 and inner_folds >= 3.")
         if not 0 <= self.seed < 2**32:
@@ -122,7 +125,10 @@ def load_comparison_config(path: Path) -> ComparisonConfig:
     if set(value) != set(keys):
         raise ValueError(f"Expected configuration sections: {sorted(keys)}.")
     for section, expected in keys.items():
-        if set(value[section]) != expected:
+        supplied = set(value[section])
+        if section == "comparison":
+            supplied -= {"device"}
+        if supplied != expected:
             raise ValueError(
                 f"Unexpected or missing keys in [{section}]; expected {sorted(expected)}."
             )

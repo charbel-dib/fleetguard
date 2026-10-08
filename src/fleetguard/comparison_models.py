@@ -98,7 +98,7 @@ def make_candidates(config: ComparisonConfig) -> dict:
                     objective="binary:logistic",
                     eval_metric="logloss",
                     tree_method="hist",
-                    device="cpu",
+                    device=config.device,
                     random_state=config.base.seed,
                     n_jobs=config.n_jobs,
                 ),

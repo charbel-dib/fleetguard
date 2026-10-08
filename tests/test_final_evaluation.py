@@ -57,3 +57,48 @@ def test_final_evaluation_rejects_a_changed_source_snapshot(
     monkeypatch.setattr(evaluation, "verify_raw", lambda _: {"files": {TEST_NAME: "changed"}})
     with pytest.raises(ValueError, match="snapshot differs"):
         evaluation.evaluate_test(config, run)
+
+
+def test_shared_receipt_blocks_a_second_run_before_test_loading(
+    tmp_path, classification_frame, monkeypatch
+):
+    features, target = classification_frame
+    manifest = {"files": {TEST_NAME: "fixture-shared"}}
+    config = Config(raw_dir=tmp_path / "raw", runs_dir=tmp_path / "runs")
+    first = run_experiment(features, target, config, source=manifest)
+    second = run_experiment(features, target, config, source=manifest)
+    monkeypatch.setattr(evaluation, "verify_raw", lambda _: manifest)
+    calls = []
+
+    def loader(path):
+        calls.append(path)
+        return features.iloc[:30], target.iloc[:30]
+
+    monkeypatch.setattr(evaluation, "load_aps", loader)
+    evaluation.evaluate_test(config, first)
+    with pytest.raises(ValueError, match="already has a final-test evaluation attempt"):
+        evaluation.evaluate_test(config, second)
+    assert len(calls) == 1
+    assert not (second / "final_test").exists()
+
+
+def test_interrupted_test_keeps_consumed_receipt(tmp_path, classification_frame, monkeypatch):
+    features, target = classification_frame
+    manifest = {"files": {TEST_NAME: "fixture-interrupted"}}
+    config = Config(raw_dir=tmp_path / "raw", runs_dir=tmp_path / "runs")
+    first = run_experiment(features, target, config, source=manifest)
+    second = run_experiment(features, target, config, source=manifest)
+    monkeypatch.setattr(evaluation, "verify_raw", lambda _: manifest)
+
+    def interrupt(path):
+        raise KeyboardInterrupt("fixture")
+
+    monkeypatch.setattr(evaluation, "load_aps", interrupt)
+    with pytest.raises(KeyboardInterrupt):
+        evaluation.evaluate_test(config, first)
+    assert (
+        read_json(next((tmp_path / "final_evaluations").glob("*/attempt.json")))["status"]
+        == "failed"
+    )
+    with pytest.raises(ValueError, match="already has a final-test evaluation attempt"):
+        evaluation.evaluate_test(config, second)
