@@ -1,5 +1,12 @@
-include README.md START_HERE.md PROJECT_CHECKLIST.md UPDATE_02.md UPDATE_03.md UPDATE_04.md UPDATE_05.md UPDATE_06.md HOTFIX_03_01.md LICENSE uv.lock Dockerfile compose.yaml .dockerignore
+include README.md START_HERE.md PROJECT_CHECKLIST.md UPDATE_02.md UPDATE_03.md UPDATE_04.md UPDATE_05.md UPDATE_06.md UPDATE_07.md HOTFIX_03_01.md LICENSE uv.lock Dockerfile compose.yaml .dockerignore
 recursive-include configs *.toml
 recursive-include docs *.md *.json *.csv *.png
 recursive-include tests *.py
 recursive-include scripts *.ps1 *.py
+recursive-include infra *.tf *.example *.tftest.hcl
+include infra/bootstrap/.terraform.lock.hcl infra/runtime/.terraform.lock.hcl
+include frontend/package.json frontend/package-lock.json frontend/tsconfig.json frontend/vite.config.ts frontend/index.html frontend/playwright.config.ts frontend/.prettierignore frontend/.prettierrc.json
+recursive-include frontend/src *.ts *.tsx *.css
+recursive-include frontend/public *.svg
+recursive-include frontend/scripts *.mjs
+recursive-include frontend/tests *.ts

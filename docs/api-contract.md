@@ -1,4 +1,4 @@
-# Inference API — contract v1, service 0.6.0
+# Inference API — contract v1, service 0.7.0
 
 One trusted, complete `release_v1` is loaded during startup. The freeze, split and model checks
 run before deserialization; a warmup prediction must succeed before readiness. The pipeline,
@@ -146,3 +146,12 @@ Pass `--web-dir frontend/dist` (or FLEETGUARD_WEB_DIR) to serve a verified compl
 at `/` after the API routes. Model loading, schemas and prediction behavior are unchanged. API-only
 startup remains the default. See [web-interface.md](web-interface.md) for relative browser routes,
 local Vite proxy, CSV/client limits, reference provenance and production-built integration tests.
+
+
+## Deployment provenance (0.7)
+
+`GET /v1/deployment` returns service_version, the active model identity, and deployment fields
+`git_sha`, `bundle_sha256`, `image_digest`. Local unset fields are null. Cloud builds set code/model
+provenance and the digest-pinned ECS task supplies its image digest. No credentials or cloud
+resource secrets are exposed. Invalid configured identifier formats fail app construction.
+This is runtime provenance, not signed attestation; see [cloud deployment](cloud-deployment.md).

@@ -14,13 +14,6 @@ dist/
 !.env.example
 .DS_Store
 Thumbs.db
-START_HERE.md
-UPDATE_02.md
-UPDATE_03.md
-UPDATE_04.md
-UPDATE_05.md
-UPDATE_06.md
-HOTFIX_03_01.md
 
 # Downloaded data, fitted models and reproducible local outputs
 /data/
@@ -42,3 +35,21 @@ HOTFIX_03_01.md
 /frontend/public/evidence/
 /frontend/playwright-report/
 /frontend/test-results/
+# Terraform state and generated cloud receipts are local, not source.
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/*.tfplan
+**/terraform.tfvars
+**/*.auto.tfvars.json
+**/backend.hcl
+crash.log
+
+START_HERE.md
+UPDATE_02.md
+UPDATE_03.md
+UPDATE_04.md
+UPDATE_05.md
+UPDATE_06.md
+UPDATE_07.md
+HOTFIX_03_01.md

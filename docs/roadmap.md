@@ -39,7 +39,7 @@ reported limits reflect the anonymized historical dataset. The reference experim
 follow UPDATE_04.md to reproduce it locally and integrate the feature branch through CI/PR.
 Future implementation stages reuse the frozen release, without tuning on published test outcomes.
 
-## 5. Inference service — delivered in update 05; integration pending
+## 5. Inference service — delivered in update 05; integration declared complete
 
 FastAPI/Pydantic health/readiness, single/batch prediction, exact frozen schema, streamed body and
 row caps, strict finite numeric input, identity hashes and startup-only verified loading. Inference
@@ -52,7 +52,7 @@ The image build/run job is provided, but Docker was unavailable during local ver
 container health/parity locally and green remote Linux/Windows/container CI before merging.
 Capacity, browser CORS and public deployment are subsequent work.
 
-## 6. Professional web application — delivered in update 06; integration pending
+## 6. Professional web application — delivered in update 06; integration declared complete
 
 React/TypeScript strict CSV import, bounded sequential HTTP batches, cancellation and model identity
 checks, paginated/filterable review, sensor dialog, session review marks and JSON export. Reference
@@ -63,13 +63,18 @@ Acceptance: 28 frontend unit cases, seven real-HTTP browser workflows, keyboard/
 104 Python tests and both builds verified under Linux. Follow UPDATE_06.md for your Windows release
 and PR. Confirm remote CI, then deploy in stage 7; localhost delivery is not public hosting.
 
-## 7. Cloud and CI/CD
+## 7. AWS and CI/CD — implementation delivered in update 07; live acceptance pending
 
-Declare artifact storage and hosting, build/publish container images, test staging, promote models,
-deploy frontend/backend and verify rollback. Integrate infrastructure configuration with versioned
-releases rather than committing generated models or secrets.
+Private/versioned S3 model storage and Terraform state, immutable private ECR image candidates,
+GitHub OIDC publication/deployment roles, ECS Fargate, internal ALB and CloudFront VPC origin/HTTPS.
+The cloud image includes the built React UI, serving environment and frozen trusted model.
+Explicit promotion uses exact candidate/staging receipts; rollout/probe failure restores the previous
+revision and checks its identity. A staging-only failed-startup drill exercises rollback.
 
-Acceptance: automated deployment for a real service, recorded model version and working rollback.
+Acceptance: follow UPDATE_07.md; merge green infrastructure/container/frontend/Python CI, provision
+reviewed resources, publish the trusted model candidate, verify real staging, drill and production.
+Local provider validation/mock execution is blocked by prohibited Unix sockets and remains required
+in CI/Windows. Software mocks/local HTTP are not AWS evidence. Record actual URL/image/model and receipts.
 
 ## 8. Operations
 
