@@ -231,3 +231,28 @@ ni la généralisation ni la latence en charge. Le test officiel a déjà été 
 l'API réutilise le freeze et ne réouvre pas cette expérience pour ajuster la décision.
 
 Lis [le contrat API](api-contract.md) et [ADR 0005](decisions/0005-load-one-frozen-release-and-bound-http-inputs.md).
+
+
+## Incrément 6 — observer un lot sans inventer son évaluation
+
+Le type TypeScript décrit ce que le code attend ; il ne valide pas une réponse HTTP au runtime.
+Le client vérifie aussi schéma, identité, ordre, bornes des scores et cohérence score/seuil/label.
+Une identité modifiée au milieu des lots invalide le résultat complet, même si chaque HTTP vaut 200.
+La limite par octets se calcule sur le JSON UTF-8 envoyé, pas sur le poids du CSV ni sa seule longueur.
+
+Une observation absente est null ; une colonne absente rend le contrat incomplet. La validation
+CSV précède l'envoi, puis l'API garde ses propres contrôles. Les lignes entièrement vides en capteurs
+restent des observations : les perdre silencieusement changerait l'index de la revue.
+
+Un lot sans labels peut mesurer sa fraction d'alertes et son manque de mesures, mais pas son rappel,
+sa précision ou ses FN. La vue des preuves de référence nomme une autre expérience et son snapshot ;
+elles ne deviennent pas des performances du modèle actif. Pos/neg restent des attributions APS/hors
+APS, pas des horizons de panne ni des garanties de santé.
+
+Les tests de composants seuls n'auraient pas vérifié le proxy/origin, les assets de production et la
+vraie API. Les parcours Playwright utilisent la build et un serveur synthétique réel, avec de petits
+lots forçant plusieurs requêtes. Le dialogue natif gère focus/Escape ; axe et le contrôle mobile
+révèlent des problèmes concrets de contraste/débordement, sans constituer une certification WCAG.
+
+La build sépare code et agrégats versionnés des données/model locaux. La suite déploiera cette
+interface et la release avec une politique explicite d'accès, de promotion et de rollback.

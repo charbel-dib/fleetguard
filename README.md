@@ -11,7 +11,7 @@ and threshold tuning, saved inference pipelines, budgeted Optuna search, a PyTor
 experiment figures and CI. Version 0.4 adds a calibrated frozen release, permutation/error audits,
 CPU resource measurements, a model card and a one-shot official-test evaluation.
 Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract, with a minimal
-artifact bundle, a serving-only Dockerfile and container CI. The web application is next.
+artifact bundle, a serving-only Dockerfile and container CI. Version 0.6 adds a React/TypeScript CSV review interface, published evidence views and browser tests.
 
 ## What is being predicted?
 
@@ -49,7 +49,7 @@ For the model comparison introduced in version 0.2:
 uv run --frozen --extra dev fleetguard compare
 ```
 
-Existing users: apply the latest changed files using [UPDATE_05.md](UPDATE_05.md).
+Existing users: apply the latest changed files using [UPDATE_06.md](UPDATE_06.md).
 Optimization is documented in [UPDATE_03.md](UPDATE_03.md); its Windows smoke repair is in
 [HOTFIX_03_01.md](HOTFIX_03_01.md).
 The preceding comparison update is documented in [UPDATE_02.md](UPDATE_02.md).
@@ -309,7 +309,8 @@ still induces optimism. The retained validation has already been inspected in th
 Version 0.3 adds budgeted search, controlled ablations and an MLP. Search folds are reused for
 selection, and the recorded stability concerns partition seeds with model seed fixed.
 Version 0.4 completed the audits, CPU microbenchmark, freeze and one-shot final evaluation.
-Version 0.5 serves that fixed decision. Next: a usable interface, deployment and measured operations.
+Version 0.5 serves that fixed decision and 0.6 supplies the local review interface.
+Next: deployment and measured operations.
 
 Duplicate grouping addresses only identical released feature rows. Anonymization prevents
 physical explanations of individual sensors and does not allow us to rule out repeated trucks,
@@ -422,3 +423,49 @@ Read [the complete v1 contract](docs/api-contract.md),
 [ADR 0005](docs/decisions/0005-load-one-frozen-release-and-bound-http-inputs.md), and
 [measured contract evidence](docs/results/api-05.json). This is a localhost service;
 public hosting, authentication/CORS, model promotion and operations follow in later increments.
+
+
+## Local web interface (0.6)
+
+Use Node.js 24 LTS and the existing Python serving environment. Build from locked frontend dependencies:
+
+```bash
+cd frontend
+npm ci
+npm run check
+npm test
+npm run build
+cd ..
+uv run --no-sync python -m fleetguard serve --release artifacts/releases/YOUR_RELEASE --web-dir frontend/dist
+```
+
+Open <http://127.0.0.1:8000>. The three views cover CSV alert review, reference model diagnostics and
+published CV experiments. Exact sensor schemas, finite float32 inputs and client caps are checked
+before inference. Requests are split by server row/byte caps, with progress, cancellation and model
+identity checks. Results are displayed only for a complete successful lot. Review annotations persist
+across tabs in memory and can be deliberately exported with the model identity.
+
+Uploaded data have no labels: the lot reports counts, alert fraction and missingness rather than
+invented precision/recall/cost. Reference charts/tables clearly identify their published release,
+independent of the model currently served. Examples are artificial null/zero contract probes. No
+sensor records or models are shipped with the frontend.
+
+`npm run dev` uses localhost:5173 and proxies the API routes to localhost:8000. The integrated built
+UI uses the API origin directly. No public hosting or authentication/CORS policy is added yet.
+The browser test uses an explicit synthetic HTTP fixture and the production build:
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
+```
+
+Windows setup, npm.cmd wrappers, execution-policy/session environment and the feature-branch workflow
+are in [UPDATE_06.md](UPDATE_06.md). [Interface behavior and validation](docs/web-interface.md),
+[ADR 0006](docs/decisions/0006-separate-unlabeled-review-from-reference-evidence.md), and the
+[global checklist](PROJECT_CHECKLIST.md) describe the delivery and remaining cloud/portfolio stages.
+
+Local validation is recorded in [web-06.json](docs/results/web-06.json), with
+[desktop](docs/results/web-06-home.png) and [mobile](docs/results/web-06-mobile.png) captures.
+These use the published reference release; the mobile lot contains only artificial null/zero inputs.
+The interface displays the identity and threshold of the release actually loaded by your API.

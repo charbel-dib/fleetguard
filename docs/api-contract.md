@@ -1,4 +1,4 @@
-# Inference API — contract v1, service 0.5.0
+# Inference API — contract v1, service 0.6.0
 
 One trusted, complete `release_v1` is loaded during startup. The freeze, split and model checks
 run before deserialization; a warmup prediction must succeed before readiness. The pipeline,
@@ -138,3 +138,11 @@ on GitHub and try your official bundle locally before marking container integrat
 References: [FastAPI lifespan](https://fastapi.tiangolo.com/advanced/events/),
 [Pydantic configuration](https://docs.pydantic.dev/latest/api/config/),
 [uv Docker guide](https://docs.astral.sh/uv/guides/integration/docker/).
+
+
+## Optional integrated frontend (0.6)
+
+Pass `--web-dir frontend/dist` (or FLEETGUARD_WEB_DIR) to serve a verified complete build directory
+at `/` after the API routes. Model loading, schemas and prediction behavior are unchanged. API-only
+startup remains the default. See [web-interface.md](web-interface.md) for relative browser routes,
+local Vite proxy, CSV/client limits, reference provenance and production-built integration tests.

@@ -52,13 +52,16 @@ The image build/run job is provided, but Docker was unavailable during local ver
 container health/parity locally and green remote Linux/Windows/container CI before merging.
 Capacity, browser CORS and public deployment are subsequent work.
 
-## 6. Professional web application
+## 6. Professional web application — delivered in update 06; integration pending
 
-Build React/TypeScript batch upload and alert review, a diagnostics view and an experiment viewer.
-Clearly distinguish labeled validation tradeoffs from unlabeled production input. Add accessibility,
-loading/error handling, API integration tests and a production build.
+React/TypeScript strict CSV import, bounded sequential HTTP batches, cancellation and model identity
+checks, paginated/filterable review, sensor dialog, session review marks and JSON export. Reference
+validation/test diagnostics and CV experiments are visibly separated from active model/unlabeled lot
+quantities. The production build can share the local API origin; Vite uses a development proxy.
 
-Acceptance: a visitor can use an example, inspect an alert and understand the measured tradeoff.
+Acceptance: 28 frontend unit cases, seven real-HTTP browser workflows, keyboard/axe/mobile checks,
+104 Python tests and both builds verified under Linux. Follow UPDATE_06.md for your Windows release
+and PR. Confirm remote CI, then deploy in stage 7; localhost delivery is not public hosting.
 
 ## 7. Cloud and CI/CD
 
