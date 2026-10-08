@@ -1,6 +1,6 @@
 # FleetGuard — checklist jusqu'au portfolio
 
-Dernière mise à jour : incrément 6. Les étapes précédentes, dont l'update 05, sont déclarées
+Dernière mise à jour : incrément 7. Les étapes précédentes, dont l'update 06, sont déclarées
 terminées par toi.
 Les expériences/contrôles de référence sont vérifiés ici ; une CI GitHub distante n'est pas
 observée directement. Le guide du nouvel update part d'un main propre, PR précédente intégrée.
@@ -29,11 +29,16 @@ observée directement. Le guide du nouvel update part d'un main propre, PR préc
   import CSV strict, lots bornés/progression/annulation, identité figée, revue/tri/filtres/détails,
   annotations et export ; diagnostics/expériences de référence clairement séparés du lot.
   Build, unités, parcours HTTP réel, clavier/axe et affichage mobile vérifiés localement.
-- [ ] **6b. Intégration de cet update** : contrôles Windows/Python/frontend verts, parcours
-  avec ta release, commit/push `feat/alert-review-ui`, PR, CI Linux/Windows/container/frontend
-  verte et fusion vers main. La build reste locale jusqu'au déploiement.
-- [ ] **7. Cloud et CI/CD** : artefacts et stockage versionnés, infrastructure déclarée,
-  staging, promotion du modèle, frontend/backend déployés et rollback vérifié.
+- [x] **6b. Intégration de l'update 06** : étape déclarée terminée par toi ; la CI distante
+  reste non observée directement ici.
+- [x] **7a. Cloud AWS — implémentation** : Terraform S3/ECR/OIDC et runtime ECS Fargate,
+  ALB interne/CloudFront HTTPS, image web/API/modèle figé, publication par digest,
+  promotion staging → production avec reçu exact et restauration vérifiée de la révision précédente.
+  Packaging/contrats/rollback testés localement, sans ressource AWS créée.
+- [ ] **7b. Intégration et acceptation cloud** : contrôles Windows, Terraform validate/tests mocks
+  et Docker verts, push/PR/CI/fusion, sujet OIDC et rôles configurés, upload privé versionné,
+  candidat publié, staging réel et drill réussis, promotion production et URL HTTPS vérifiées.
+  La validation du provider est bloquée ici par les sockets Unix ; la CI doit la réaliser.
 - [ ] **8. Exploitation** : logs/métriques, charge, erreurs/latence, dérive,
   budget d'hébergement et maintenance.
 - [ ] **9. Portfolio Vercel** : démonstration utilisable, captures/vidéo, résultats/limites,

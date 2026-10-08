@@ -1,0 +1,8 @@
+region                 = "eu-west-3"
+project                = "fleetguard"
+# Copy from the inspect-cloud-identity workflow, not from this example.
+github_oidc_repository = "YOUR_OWNER@123456/YOUR_REPO@789012"
+budget_email           = "YOUR_EMAIL@example.com"
+monthly_budget_usd     = 30 # Choose your own alert threshold; this is not an estimate or a cap.
+# If the account already has this provider, reuse it:
+# existing_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"

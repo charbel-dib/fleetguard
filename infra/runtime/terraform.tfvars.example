@@ -1,0 +1,4 @@
+region      = "eu-west-3"
+project     = "fleetguard"
+environment = "staging"
+# candidate.auto.tfvars.json is generated from the verified cloud candidate.

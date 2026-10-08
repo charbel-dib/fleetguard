@@ -256,3 +256,21 @@ révèlent des problèmes concrets de contraste/débordement, sans constituer un
 
 La build sépare code et agrégats versionnés des données/model locaux. La suite déploiera cette
 interface et la release avec une politique explicite d'accès, de promotion et de rollback.
+
+
+## Increment 07: immutable cloud promotion
+
+A model release, a code commit and an OCI image digest are different identities. A deployment
+candidate binds all three; an ECR tag alone is insufficient. S3 object version IDs pin the exact
+trusted model archive. The archive's SHA256 checks integrity, while freeze/model contracts check
+semantic consistency. Checksums do not make unknown joblib files trustworthy.
+
+OIDC replaces stored GitHub AWS keys; exact observed environment subjects restrict assumption.
+The execution role can pull images/write logs while the application task needs no AWS permission.
+A stable ECS service may reflect automatic rollback to the old task, so the requested PRIMARY
+revision must also match. Health/API/model/code/asset checks and verified restoration supply
+operational evidence; mocked AWS tests verify orchestration but do not establish cloud success.
+
+Terraform owns infrastructure, CI owns later image revisions. Separate state keys and data paths
+avoid crossing staging/production. Budgets alert rather than cap spending. The delivered AWS
+configuration is pending real CI/provider validation and cloud acceptance before portfolio claims.
