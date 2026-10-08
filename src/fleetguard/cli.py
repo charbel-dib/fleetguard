@@ -53,6 +53,15 @@ def build_parser() -> argparse.ArgumentParser:
     )
     release.add_argument("--run", type=Path, required=True)
     release.add_argument("--config", type=Path, default=Path("configs/release.toml"))
+    bundle = commands.add_parser("bundle", help="Copy only a release's frozen serving contract.")
+    bundle.add_argument("--release", type=Path, required=True)
+    bundle.add_argument("--output", type=Path, required=True)
+    serving = commands.add_parser(
+        "serve", help="Serve one trusted frozen release on a local HTTP API."
+    )
+    serving.add_argument("--release", type=Path, help="Defaults to FLEETGUARD_RELEASE_DIR.")
+    serving.add_argument("--host", default="127.0.0.1")
+    serving.add_argument("--port", type=int, default=8000)
     evaluation = commands.add_parser(
         "evaluate-test", help="Evaluate the frozen champion on official test."
     )
@@ -118,6 +127,33 @@ def _dispatch(args: argparse.Namespace) -> None:
         run = optimize(load_optimization_config(args.config))
         logger.info("Optimization complete: %s", run)
         print((run / "optimization_report.md").read_text(encoding="utf-8"))
+    elif args.command == "bundle":
+        from fleetguard.serving.bundle import bundle_release
+
+        output = bundle_release(args.release, args.output)
+        logger.info("Serving bundle created: %s", output)
+    elif args.command == "serve":
+        try:
+            import uvicorn
+
+            from fleetguard.serving.api import create_app
+            from fleetguard.serving.settings import Settings
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "Serving requires the serve extra: uv sync --frozen --extra dev --extra serve"
+            ) from exc
+        if not 1 <= args.port <= 65535:
+            raise ValueError("Port must be in [1, 65535].")
+        settings = Settings.from_env(args.release)
+        uvicorn.run(
+            create_app(settings),
+            host=args.host,
+            port=args.port,
+            workers=1,
+            limit_concurrency=settings.max_concurrency,
+            access_log=False,
+            server_header=False,
+        )
     elif args.command == "predict":
         require_complete(args.run)
         if args.output.exists():

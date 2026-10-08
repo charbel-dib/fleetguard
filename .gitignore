@@ -16,6 +16,10 @@ dist/
 Thumbs.db
 START_HERE.md
 UPDATE_02.md
+UPDATE_03.md
+HOTFIX_03_01.md
+UPDATE_04.md
+UPDATE_05.md
 
 # Downloaded data, fitted models and reproducible local outputs
 /data/
@@ -23,3 +27,10 @@ UPDATE_02.md
 /reports/
 *.joblib
 *.log
+
+# Accidental MLflow defaults; normal tracking lives under artifacts/.
+/mlruns/
+/mlartifacts/
+/mlflow.db
+/mlflow.db-shm
+/mlflow.db-wal
