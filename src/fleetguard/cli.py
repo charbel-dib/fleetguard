@@ -44,6 +44,15 @@ def build_parser() -> argparse.ArgumentParser:
         "compare", help="Compare models using train-only CV and frozen thresholds."
     )
     comparison.add_argument("--config", type=Path, default=Path("configs/comparison.toml"))
+    optimization = commands.add_parser(
+        "optimize", help="Budgeted Optuna search, controlled ablations and a PyTorch MLP."
+    )
+    optimization.add_argument("--config", type=Path, default=Path("configs/optimization.toml"))
+    release = commands.add_parser(
+        "audit", help="Audit/calibrate the optimization champion and freeze a release."
+    )
+    release.add_argument("--run", type=Path, required=True)
+    release.add_argument("--config", type=Path, default=Path("configs/release.toml"))
     evaluation = commands.add_parser(
         "evaluate-test", help="Evaluate the frozen champion on official test."
     )
@@ -96,6 +105,19 @@ def _dispatch(args: argparse.Namespace) -> None:
         run = compare(load_comparison_config(args.config))
         logger.info("Comparison complete: %s", run)
         print((run / "comparison_report.md").read_text(encoding="utf-8"))
+    elif args.command == "optimize":
+        try:
+            from fleetguard.optimization import optimize
+            from fleetguard.optimization_config import load_optimization_config
+        except ModuleNotFoundError as exc:
+            raise RuntimeError(
+                "Optimization needs the research extra: "
+                "uv sync --frozen --extra dev --extra research"
+            ) from exc
+
+        run = optimize(load_optimization_config(args.config))
+        logger.info("Optimization complete: %s", run)
+        print((run / "optimization_report.md").read_text(encoding="utf-8"))
     elif args.command == "predict":
         require_complete(args.run)
         if args.output.exists():
@@ -117,6 +139,13 @@ def _dispatch(args: argparse.Namespace) -> None:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         output.to_csv(args.output, index=False)
         logger.info("Predicted %s rows: %s", len(output), args.output)
+    elif args.command == "audit":
+        from fleetguard.release import audit
+        from fleetguard.release_config import load_release_config
+
+        run = audit(load_release_config(args.config), args.run)
+        logger.info("Frozen release: %s", run)
+        print((run / "model_card.md").read_text(encoding="utf-8"))
 
 
 def main(argv: list[str] | None = None) -> int:

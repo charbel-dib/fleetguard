@@ -12,6 +12,9 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      MLFLOW_DISABLE_TELEMETRY: 'true'
+      MLFLOW_DISABLE_AGENT_HINT: 'true'
     strategy:
       matrix:
         python-version: ['3.11', '3.12']
@@ -24,22 +27,41 @@ jobs:
         with:
           enable-cache: true
       - run: uv lock --check
-      - run: uv sync --frozen --extra dev
-      - run: uv run --frozen --extra dev ruff format --check .
-      - run: uv run --frozen --extra dev ruff check .
-      - run: uv run --frozen --extra dev pytest
-      - run: uv run --frozen --extra dev python -m fleetguard.smoke
-      - run: uv run --frozen --extra dev python -m fleetguard.comparison_smoke
-      - run: uv run --frozen --extra dev python -m build
+      - run: uv sync --frozen --extra dev --extra research
+      - run: uv run --no-sync python -m ruff format --check .
+      - run: uv run --no-sync python -m ruff check .
+      - run: uv run --no-sync python -m pytest
+      - run: uv run --no-sync python -m fleetguard.smoke
+      - run: uv run --no-sync python -m fleetguard.comparison_smoke
+      - run: uv run --no-sync python -m fleetguard.optimization_smoke
+      - run: uv run --no-sync python -m fleetguard.release_smoke
+      - run: uv run --no-sync python -m build
       - name: Verify installed wheel independently of src
         shell: bash
         run: |
-          uv venv /tmp/fleetguard-wheel --python ${{ matrix.python-version }}
+          # Resolve the locked torch source; smoke configs use CPU. Omit the editable project.
+          UV_PROJECT_ENVIRONMENT=/tmp/fleetguard-wheel uv sync --python ${{ matrix.python-version }} --frozen --no-dev --extra research --no-install-project
           uv pip install --python /tmp/fleetguard-wheel/bin/python --no-deps dist/*.whl
-          # Install the exact locked runtime requirements, without the editable project.
-          uv export --frozen --no-dev --no-emit-project --no-hashes -o /tmp/fleetguard-runtime.txt
-          uv pip install --python /tmp/fleetguard-wheel/bin/python -r /tmp/fleetguard-runtime.txt
           cd /tmp
           /tmp/fleetguard-wheel/bin/python -m fleetguard --help
           /tmp/fleetguard-wheel/bin/python -m fleetguard.smoke
           /tmp/fleetguard-wheel/bin/python -m fleetguard.comparison_smoke
+          /tmp/fleetguard-wheel/bin/python -m fleetguard.optimization_smoke
+          /tmp/fleetguard-wheel/bin/python -m fleetguard.release_smoke
+
+  windows:
+    runs-on: windows-latest
+    env:
+      MLFLOW_DISABLE_TELEMETRY: 'true'
+      MLFLOW_DISABLE_AGENT_HINT: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Verify the Windows copy-mode environment and research checks
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1 -Research
