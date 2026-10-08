@@ -123,6 +123,26 @@ jobs:
         run: docker rm --force fleetguard-ci || true
 
 
+  infrastructure:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.13.5'
+      - uses: docker/setup-buildx-action@v3
+      - name: Terraform syntax, provider validation and mock plans (no AWS credentials)
+        run: |
+          set -euo pipefail
+          terraform fmt -check -recursive infra
+          for module in bootstrap runtime; do
+            terraform -chdir="infra/$module" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="infra/$module" validate
+            terraform -chdir="infra/$module" test
+          done
+      - name: Check all Dockerfile targets without loading a model or deploying
+        run: docker buildx build --check --build-context modelbundle=. .
+
   frontend:
     runs-on: ubuntu-latest
     steps:

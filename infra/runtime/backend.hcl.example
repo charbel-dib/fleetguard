@@ -1,0 +1,5 @@
+bucket       = "fleetguard-123456789012-eu-west-3-state"
+key          = "runtime/staging/terraform.tfstate"
+region       = "eu-west-3"
+encrypt      = true
+use_lockfile = true
