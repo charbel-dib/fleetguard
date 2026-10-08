@@ -12,6 +12,7 @@ class Settings:
     max_request_bytes: int = 2 * 1024 * 1024
     max_concurrency: int = 16
     allow_synthetic: bool = False
+    web_dir: Path | None = None
 
     def __post_init__(self):
         for key, upper in (
@@ -28,12 +29,13 @@ class Settings:
             raise ValueError("allow_synthetic must be a boolean.")
 
     @classmethod
-    def from_env(cls, release_dir=None):
+    def from_env(cls, release_dir=None, web_dir=None):
         selected = release_dir or os.environ.get("FLEETGUARD_RELEASE_DIR")
         if not selected:
             raise ValueError(
                 "Set FLEETGUARD_RELEASE_DIR or pass --release with a trusted frozen release."
             )
+        selected_web = web_dir or os.environ.get("FLEETGUARD_WEB_DIR")
         test_mode = os.environ.get("FLEETGUARD_ALLOW_SYNTHETIC", "false").lower()
         if test_mode not in {"true", "false"}:
             raise ValueError("FLEETGUARD_ALLOW_SYNTHETIC must be true or false.")
@@ -45,4 +47,5 @@ class Settings:
             ),
             max_concurrency=int(os.environ.get("FLEETGUARD_MAX_CONCURRENCY", "16")),
             allow_synthetic=test_mode == "true",
+            web_dir=Path(selected_web).resolve() if selected_web else None,
         )

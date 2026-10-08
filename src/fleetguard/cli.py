@@ -60,6 +60,9 @@ def build_parser() -> argparse.ArgumentParser:
         "serve", help="Serve one trusted frozen release on a local HTTP API."
     )
     serving.add_argument("--release", type=Path, help="Defaults to FLEETGUARD_RELEASE_DIR.")
+    serving.add_argument(
+        "--web-dir", type=Path, help="Optional built frontend (index.html + assets)."
+    )
     serving.add_argument("--host", default="127.0.0.1")
     serving.add_argument("--port", type=int, default=8000)
     evaluation = commands.add_parser(
@@ -144,7 +147,7 @@ def _dispatch(args: argparse.Namespace) -> None:
             ) from exc
         if not 1 <= args.port <= 65535:
             raise ValueError("Port must be in [1, 65535].")
-        settings = Settings.from_env(args.release)
+        settings = Settings.from_env(args.release, web_dir=args.web_dir)
         uvicorn.run(
             create_app(settings),
             host=args.host,
