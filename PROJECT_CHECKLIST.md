@@ -1,6 +1,7 @@
 # FleetGuard — checklist jusqu'au portfolio
 
-Dernière mise à jour : incrément 4. L'update 03 et son hotfix sont déclarés terminés par toi.
+Dernière mise à jour : incrément 5. Les étapes précédentes, dont l'update 04, sont déclarées
+terminées par toi.
 Les expériences/contrôles de référence sont vérifiés ici ; une CI GitHub distante n'est pas
 observée directement. Le guide du nouvel update part d'un main propre, PR précédente intégrée.
 
@@ -17,11 +18,14 @@ observée directement. Le guide du nouvel update part d'un main propre, PR préc
 - [x] **4. Interprétation et décision finale — référence** : calibration du champion XGBoost
   sur rôle réservé, analyse FP/FN et missingness, permutation simple/groupée, budgets
   d'inspection, benchmark CPU, freeze vérifié, évaluation officielle unique et model card.
-- [ ] **4b. Intégration de cet update sur ton dépôt** : appliquer le delta, obtenir les contrôles
-  verts, auditer ta release locale et reproduire le protocole final sans retuning, puis commit,
-  push `feat/frozen-model-release`, PR, CI Linux/Windows verte et fusion vers main.
-- [ ] **5. Service d'inférence** : FastAPI/Pydantic, health/readiness, prédiction unitaire/batch,
-  limites d'entrée, identité/version du modèle, contrats et Docker.
+- [x] **4b. Intégration de l'update 04** : étape déclarée terminée ; la CI distante reste
+  non observée directement ici.
+- [x] **5. Service d'inférence — implémentation/référence** : FastAPI/Pydantic,
+  live/ready, prédiction unitaire/batch, identité/hashes, schéma strict, limites de corps/lignes,
+  chargement figé et tests HTTP/local sans entraînement. Bundle minimal et Docker/Compose livrés.
+- [ ] **5b. Intégration de cet update et vérification container** : appliquer le delta,
+  contrôles Windows verts, parité de ta release, build/exécution Docker et healthy/parité,
+  commit/push `feat/inference-api`, PR, CI Linux/Windows/container verte et fusion vers main.
 - [ ] **6. Interface professionnelle** : React/TypeScript, import CSV, revue des alertes,
   diagnostics, expériences, accessibilité et tests des parcours.
 - [ ] **7. Cloud et CI/CD** : artefacts et stockage versionnés, infrastructure déclarée,
@@ -53,4 +57,4 @@ future de panne. Le transfert à une autre flotte et les décisions de maintenan
 une validation externe.
 
 Le modèle exact/VRAM/driver du GPU restent à vérifier avant une configuration CUDA.
-Tout le protocole livré fonctionne sur CPU ; le service n'aura pas besoin d'entraîner au démarrage.
+Tout le protocole livré fonctionne sur CPU ; le service ne s'entraîne pas au démarrage.

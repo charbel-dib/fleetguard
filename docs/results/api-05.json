@@ -1,0 +1,42 @@
+{
+  "service_version": "0.5.0",
+  "contract_version": 1,
+  "model": {
+    "release_id": "20261007T210839Z-3b5571e8",
+    "name": "xgboost_release",
+    "dataset_kind": "official_aps",
+    "pipeline_sha256": "ff37351a1d201173ffdf83fddc8848f1dc8fb1b264fe0976c0301e4064f08f93",
+    "freeze_sha256": "f23443220016154c65414c6a4b6e4669ee37e8649ff68818e7debf6069e81c6a",
+    "threshold": 0.002490004285364349,
+    "calibration": "sigmoid",
+    "policy": "challenge_cost",
+    "score_semantics": "APS positive-class score; calibration assessed only on this snapshot"
+  },
+  "features": 170,
+  "tested_rows": 4,
+  "health_live": "passed",
+  "health_ready": "passed",
+  "single_batch_parity": true,
+  "local_score_parity": true,
+  "limits": {
+    "max_batch_rows": 256,
+    "max_request_bytes": 2097152,
+    "feature_abs_max": 3.4028234663852886e+38,
+    "missing_value": "null",
+    "all_sensor_keys_required": true
+  },
+  "scope": "HTTP contract/parity check; not a capacity or latency benchmark",
+  "verification": {
+    "date_utc": "2026-10-08",
+    "platform": "Linux x86_64",
+    "python": "3.12.14",
+    "rows_source": "first four official training rows, sensors only",
+    "official_test_re_evaluated": false,
+    "training_or_recalibration": false,
+    "freeze_unchanged": true,
+    "final_metrics_sha256_unchanged": "7ff499838d58111337a4b501160549bec39da6efd2911e18ba68dbab2d4d22fc",
+    "comparison_tolerance_absolute": 1e-15,
+    "docker_executed_locally": false,
+    "windows_and_remote_ci_observed": false
+  }
+}

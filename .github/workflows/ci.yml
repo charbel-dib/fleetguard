@@ -27,7 +27,7 @@ jobs:
         with:
           enable-cache: true
       - run: uv lock --check
-      - run: uv sync --frozen --extra dev --extra research
+      - run: uv sync --frozen --extra dev --extra research --extra serve
       - run: uv run --no-sync python -m ruff format --check .
       - run: uv run --no-sync python -m ruff check .
       - run: uv run --no-sync python -m pytest
@@ -35,12 +35,13 @@ jobs:
       - run: uv run --no-sync python -m fleetguard.comparison_smoke
       - run: uv run --no-sync python -m fleetguard.optimization_smoke
       - run: uv run --no-sync python -m fleetguard.release_smoke
+      - run: uv run --no-sync python -m fleetguard.serving.smoke
       - run: uv run --no-sync python -m build
       - name: Verify installed wheel independently of src
         shell: bash
         run: |
-          # Resolve the locked torch source; smoke configs use CPU. Omit the editable project.
-          UV_PROJECT_ENVIRONMENT=/tmp/fleetguard-wheel uv sync --python ${{ matrix.python-version }} --frozen --no-dev --extra research --no-install-project
+          # Resolve the CPU torch source from uv.lock; omit the editable project.
+          UV_PROJECT_ENVIRONMENT=/tmp/fleetguard-wheel uv sync --python ${{ matrix.python-version }} --frozen --no-dev --extra research --extra serve --no-install-project
           uv pip install --python /tmp/fleetguard-wheel/bin/python --no-deps dist/*.whl
           cd /tmp
           /tmp/fleetguard-wheel/bin/python -m fleetguard --help
@@ -48,6 +49,7 @@ jobs:
           /tmp/fleetguard-wheel/bin/python -m fleetguard.comparison_smoke
           /tmp/fleetguard-wheel/bin/python -m fleetguard.optimization_smoke
           /tmp/fleetguard-wheel/bin/python -m fleetguard.release_smoke
+          /tmp/fleetguard-wheel/bin/python -m fleetguard.serving.smoke
 
   windows:
     runs-on: windows-latest
@@ -62,6 +64,60 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - name: Verify the Windows copy-mode environment and research checks
+      - name: Verify the Windows copy-mode environment, research and API checks
         shell: pwsh
-        run: powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1 -Research
+        run: powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1 -Research -Serve
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --frozen --extra dev --extra serve
+      - name: Prepare an explicit offline fixture (not Scania evidence)
+        run: uv run --no-sync python -m fleetguard.serving.smoke --fixture-out artifacts/container-fixture
+      - name: Validate Compose and build the serving-only image
+        env:
+          FLEETGUARD_BUNDLE_DIR: ${{ github.workspace }}/artifacts/container-fixture
+        run: |
+          docker compose config --quiet
+          docker build --tag fleetguard:ci .
+      - name: Run an unprivileged service with a read-only model mount
+        run: |
+          docker run --detach --name fleetguard-ci --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=64m --init \
+            --security-opt no-new-privileges:true --cap-drop ALL \
+            --publish 127.0.0.1:18000:8000 \
+            --env FLEETGUARD_ALLOW_SYNTHETIC=true \
+            --mount "type=bind,source=$PWD/artifacts/container-fixture,target=/models/release,readonly" \
+            fleetguard:ci
+      - name: Verify HTTP and direct artifact parity in the running container
+        run: |
+          uv run --no-sync python scripts/probe-api.py --url http://127.0.0.1:18000 \
+            --release artifacts/container-fixture --expect-synthetic
+          docker exec fleetguard-ci python -c "import os, importlib.util; assert os.getuid() == 10001; assert importlib.util.find_spec('torch') is None; assert importlib.util.find_spec('mlflow') is None"
+          docker inspect fleetguard-ci > /tmp/fleetguard-container.json
+          python - <<'PY'
+          import json, time, subprocess
+          state = json.load(open('/tmp/fleetguard-container.json'))[0]
+          assert state['HostConfig']['ReadonlyRootfs'] is True
+          assert any(m['Destination'] == '/models/release' and m['RW'] is False for m in state['Mounts'])
+          deadline = time.monotonic() + 30
+          while True:
+              health = subprocess.check_output(['docker', 'inspect', '--format', '{{.State.Health.Status}}', 'fleetguard-ci'], text=True).strip()
+              if health == 'healthy':
+                  break
+              assert time.monotonic() < deadline, health
+              time.sleep(0.25)
+          PY
+      - name: Container logs on failure
+        if: failure()
+        run: docker logs fleetguard-ci || true
+      - name: Remove the CI container
+        if: always()
+        run: docker rm --force fleetguard-ci || true

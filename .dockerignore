@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!README.md
+!LICENSE
+!src/
+!src/fleetguard/
+!src/fleetguard/**
+**/__pycache__/
+**/*.pyc

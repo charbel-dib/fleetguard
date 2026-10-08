@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fleetguard"
-version = "0.4.0"
+version = "0.5.0"
 description = "Cost-aware classification of APS failures in Scania operational data."
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -16,24 +16,26 @@ dependencies = [
   "scikit-learn>=1.8,<1.9",
   "joblib>=1.4,<2",
   "matplotlib>=3.9,<4",
-  "xgboost>=3.0,<4",
+  "xgboost-cpu>=3.0,<4; sys_platform == 'linux' or sys_platform == 'win32'",
+  "xgboost>=3.0,<4; sys_platform == 'darwin'",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10", "ruff>=0.9,<1", "build>=1.2,<2"]
+dev = ["pytest>=8,<10", "ruff>=0.9,<1", "build>=1.2,<2", "httpx>=0.28,<0.29"]
+serve = ["fastapi>=0.142,<0.143", "pydantic>=2.13,<2.14", "uvicorn>=0.54,<0.55"]
 research = [
   "optuna>=4.6,<5",
   "mlflow>=3.8,<4",
-  "torch==2.8.0",
+  "torch>=2.8,<3",
   "imbalanced-learn>=0.14,<0.15",
 ]
 
 [tool.uv.sources]
-torch = [{ index = "pytorch-cu126", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
 
 [[tool.uv.index]]
-name = "pytorch-cu126"
-url = "https://download.pytorch.org/whl/cu126"
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [project.scripts]

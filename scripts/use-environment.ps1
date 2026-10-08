@@ -1,4 +1,4 @@
-param([switch]$Research)
+param([switch]$Research, [switch]$Serve)
 
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -17,6 +17,10 @@ $env:MLFLOW_DISABLE_AGENT_HINT = "true"
 $syncArguments = @("sync", "--python", "3.12", "--frozen", "--extra", "dev")
 if ($Research) {
     $syncArguments += @("--extra", "research")
+}
+
+if ($Serve) {
+    $syncArguments += @("--extra", "serve")
 }
 
 & uv @syncArguments
