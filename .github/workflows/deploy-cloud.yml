@@ -1,0 +1,83 @@
+name: Deploy cloud candidate
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        type: choice
+        options: [staging, production]
+      candidate_run_id:
+        description: Successful Publish cloud candidate run (an older one for manual rollback)
+        required: true
+        type: string
+      staging_run_id:
+        description: Successful staging deploy run for this exact candidate; required for production
+        required: false
+        type: string
+      operation:
+        description: Deploy/promote, or intentionally fail startup and verify rollback on staging
+        required: true
+        type: choice
+        options: [deploy, rollback-drill]
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: cloud-deploy-${{ inputs.environment }}
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GH_TOKEN: ${{ github.token }}
+      CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+      STAGING_RUN_ID: ${{ inputs.staging_run_id }}
+      TARGET_ENVIRONMENT: ${{ inputs.environment }}
+      OPERATION: ${{ inputs.operation }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_REPOSITORY: ${{ vars.AWS_REPOSITORY }}
+      ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+      ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+      APP_URL: ${{ vars.APP_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --extra serve
+      - name: Validate CI, candidate and production staging receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv run --no-sync python scripts/cloud-github.py check-ci
+          uv run --no-sync python scripts/cloud-github.py candidate --run-id "$CANDIDATE_RUN_ID" --destination artifacts/cloud/candidate
+          if [[ "$TARGET_ENVIRONMENT" == production ]]; then
+            [[ "$OPERATION" == deploy ]] || { echo 'Drills are restricted to staging'; exit 1; }
+            uv run --no-sync python scripts/cloud-github.py staging --run-id "$STAGING_RUN_ID" --candidate artifacts/cloud/candidate/candidate.json --destination artifacts/cloud/staging
+          fi
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Deploy exact digest, probe public service and restore previous revision on failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          extra=()
+          if [[ "$TARGET_ENVIRONMENT" == production ]]; then extra+=(--staging-receipt artifacts/cloud/staging/deployment.json); fi
+          if [[ "$OPERATION" == rollback-drill ]]; then extra+=(--rollback-drill); fi
+          uv run --no-sync python -m fleetguard.cloud deploy --candidate artifacts/cloud/candidate/candidate.json --region "$AWS_REGION" --repository "$AWS_REPOSITORY" --environment "$TARGET_ENVIRONMENT" --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE" --url "$APP_URL" --report artifacts/cloud/deployment.json "${extra[@]}"
+      - name: Preserve successful deployment or failed rollback evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloud-deployment-receipt
+          path: artifacts/cloud/deployment.json
+          retention-days: 90
+          if-no-files-found: warn

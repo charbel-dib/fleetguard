@@ -11,6 +11,7 @@ from starlette.responses import JSONResponse
 from starlette.staticfiles import StaticFiles
 
 from fleetguard import __version__
+from fleetguard.serving.deployment import deployment_identity
 from fleetguard.serving.middleware import RequestEnvelope, error_response
 from fleetguard.serving.predictor import FLOAT32_MAX, InputError, Predictor
 from fleetguard.serving.schemas import (
@@ -29,6 +30,7 @@ logger = logging.getLogger("fleetguard.api")
 
 def create_app(settings=None):
     settings = settings or Settings.from_env()
+    provenance = deployment_identity()
 
     @asynccontextmanager
     async def lifespan(app):
@@ -140,6 +142,14 @@ def create_app(settings=None):
                 "pos": "APS-associated component failure",
                 "neg": "failure in components outside APS",
             },
+        }
+
+    @app.get("/v1/deployment", tags=["model"])
+    async def deployment_info():
+        return {
+            "service_version": __version__,
+            "deployment": provenance,
+            "model": ready().identity,
         }
 
     @app.post(

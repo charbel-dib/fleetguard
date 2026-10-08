@@ -12,6 +12,8 @@ experiment figures and CI. Version 0.4 adds a calibrated frozen release, permuta
 CPU resource measurements, a model card and a one-shot official-test evaluation.
 Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract, with a minimal
 artifact bundle, a serving-only Dockerfile and container CI. Version 0.6 adds a React/TypeScript CSV review interface, published evidence views and browser tests.
+Version 0.7 prepares AWS deployment with versioned private model storage, digest-pinned images,
+explicit staging/production promotion and verified rollback helpers. Live cloud acceptance is pending.
 
 ## What is being predicted?
 
@@ -310,7 +312,8 @@ Version 0.3 adds budgeted search, controlled ablations and an MLP. Search folds 
 selection, and the recorded stability concerns partition seeds with model seed fixed.
 Version 0.4 completed the audits, CPU microbenchmark, freeze and one-shot final evaluation.
 Version 0.5 serves that fixed decision and 0.6 supplies the local review interface.
-Next: deployment and measured operations.
+AWS deployment configuration is delivered in 0.7; live CI/staging/production/rollback remain to verify.
+Next: cloud acceptance and measured operations.
 
 Duplicate grouping addresses only identical released feature rows. Anonymization prevents
 physical explanations of individual sensors and does not allow us to rule out repeated trucks,
@@ -469,3 +472,21 @@ Local validation is recorded in [web-06.json](docs/results/web-06.json), with
 [desktop](docs/results/web-06-home.png) and [mobile](docs/results/web-06-mobile.png) captures.
 These use the published reference release; the mobile lot contains only artificial null/zero inputs.
 The interface displays the identity and threshold of the release actually loaded by your API.
+
+
+## AWS delivery (0.7)
+
+The next integration guide is [UPDATE_07.md](UPDATE_07.md). Terraform declares private/versioned
+S3, private immutable ECR, exact GitHub OIDC roles, ECS Fargate, an internal ALB and a CloudFront
+VPC origin with viewer HTTPS. Cloud image builds include the UI and frozen model. The default
+Compose image now includes the UI and keeps the existing read-only model mount.
+
+Publish a digest-pinned candidate only after successful main CI, validate it on staging, exercise
+the failed-startup rollback drill, and promote the same image with its exact successful staging
+receipt. An older tested candidate can be restored without rebuilding. The provisioning/variables/
+Windows steps, cost controls, state isolation and teardown are explicit in the guide.
+
+[Deployment contract](docs/cloud-deployment.md), [ADR 0007](docs/decisions/0007-immutable-aws-candidates-and-explicit-promotion.md)
+and [local evidence](docs/results/cloud-07.json) describe the limits. Local Python/frontend/archive/
+HTTP checks are verified; provider validation/mock plans need the supported Windows/CI runtime,
+and Docker/AWS/public URL/drill results remain to record. No cloud deployment is claimed here.

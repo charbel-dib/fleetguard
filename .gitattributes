@@ -4,3 +4,12 @@
 *.toml text eol=lf
 *.md text eol=lf
 *.sh text eol=lf
+
+# Keep frontend source line endings compatible with Prettier on Windows.
+*.json text eol=lf
+*.html text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.svg text eol=lf

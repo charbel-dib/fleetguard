@@ -1,0 +1,101 @@
+name: Publish cloud candidate
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_sha256:
+        description: SHA256 from the local model archive receipt
+        required: true
+        type: string
+      model_version_id:
+        description: Exact S3 VersionId returned by the model upload
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+concurrency:
+  group: cloud-publish
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    environment: cloud-build
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_REPOSITORY: ${{ vars.AWS_REPOSITORY }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      AWS_MODELS_BUCKET: ${{ vars.AWS_MODELS_BUCKET }}
+      BUNDLE_SHA256: ${{ inputs.bundle_sha256 }}
+      MODEL_VERSION_ID: ${{ inputs.model_version_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --extra serve
+      - name: Require successful main CI and validate inputs
+        run: |
+          uv run --no-sync python scripts/cloud-github.py check-ci
+          uv run --no-sync python - <<'PY'
+          import os, re
+          from fleetguard.cloud.artifact import require_sha256
+          require_sha256(os.environ['BUNDLE_SHA256'])
+          assert re.fullmatch(r'[0-9]{12}', os.environ['AWS_ACCOUNT_ID'])
+          assert re.fullmatch(r'[a-z]{2}-[a-z]+-\d', os.environ['AWS_REGION'])
+          assert re.fullmatch(r'[a-z][a-z0-9-]{2,19}', os.environ['AWS_REPOSITORY'])
+          assert os.environ['MODEL_VERSION_ID'] not in {'', 'null'}
+          PY
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - uses: aws-actions/amazon-ecr-login@v2
+      - name: Fetch and verify the exact private model version
+        run: |
+          mkdir -p artifacts/cloud
+          aws s3api get-object --bucket "$AWS_MODELS_BUCKET" --key "models/$BUNDLE_SHA256.zip" --version-id "$MODEL_VERSION_ID" artifacts/cloud/model.zip > artifacts/cloud/s3-object.json
+          uv run --no-sync python -m fleetguard.cloud unpack --archive artifacts/cloud/model.zip --sha256 "$BUNDLE_SHA256" --destination artifacts/cloud/bundle
+      - uses: docker/setup-buildx-action@v3
+      - name: Build one image, smoke it, then publish those exact bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          image="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$AWS_REPOSITORY:$GITHUB_SHA-${BUNDLE_SHA256:0:12}-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          docker buildx build --platform linux/amd64 --load --target cloud --build-context modelbundle=artifacts/cloud/bundle --build-arg GIT_SHA="$GITHUB_SHA" --build-arg BUNDLE_SHA256="$BUNDLE_SHA256" --tag "$image" .
+          docker volume create fleetguard-cloud-ci-tmp
+          docker run --detach --name fleetguard-cloud-ci --read-only --mount type=volume,src=fleetguard-cloud-ci-tmp,dst=/tmp --init --security-opt no-new-privileges:true --cap-drop ALL --publish 127.0.0.1:18000:8000 "$image"
+          uv run --no-sync python scripts/probe-api.py --url http://127.0.0.1:18000 --release artifacts/cloud/bundle
+          uv run --no-sync python - <<'PY'
+          import os, urllib.request
+          from fleetguard.serving.probe import request_json
+          _, result, _ = request_json('http://127.0.0.1:18000/v1/deployment')
+          assert result['deployment']['git_sha'] == os.environ['GITHUB_SHA']
+          assert result['deployment']['bundle_sha256'] == os.environ['BUNDLE_SHA256']
+          with urllib.request.urlopen('http://127.0.0.1:18000/') as response:
+              assert 'text/html' in response.headers['Content-Type']
+          PY
+          docker exec fleetguard-cloud-ci python -c "import os,importlib.util,pathlib; assert os.getuid()==10001; assert importlib.util.find_spec('torch') is None; assert importlib.util.find_spec('mlflow') is None; p=pathlib.Path('/tmp/fleetguard-write-probe'); p.write_text('ok'); p.unlink()"
+          docker rm --force fleetguard-cloud-ci
+          docker volume rm fleetguard-cloud-ci-tmp
+          docker push "$image"
+          digest=$(aws ecr describe-images --repository-name "$AWS_REPOSITORY" --image-ids "imageTag=${image##*:}" --query 'imageDetails[0].imageDigest' --output text)
+          uv run --no-sync python -m fleetguard.cloud candidate --bundle artifacts/cloud/bundle --sha256 "$BUNDLE_SHA256" --image "${image%:*}@$digest" --git-sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" --output artifacts/cloud/candidate.json
+          printf 'Candidate build run: `%s`. Digest and model identity are in the artifact.\n' "$GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cloud-candidate
+          path: artifacts/cloud/candidate.json
+          retention-days: 90
+          if-no-files-found: error
+      - name: Logs on failure
+        if: failure()
+        run: docker logs fleetguard-cloud-ci || true
+      - name: Remove smoke container
+        if: always()
+        run: |
+          docker rm --force fleetguard-cloud-ci || true
+          docker volume rm fleetguard-cloud-ci-tmp || true

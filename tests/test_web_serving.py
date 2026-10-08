@@ -33,6 +33,13 @@ def test_optional_static_ui_preserves_api_and_readiness(web_settings):
         assert client.get("/assets/app.js").status_code == 200
         assert client.get("/health/ready").json()["status"] == "ready"
         info = client.get("/v1/model").json()
+        deployment = client.get("/v1/deployment").json()
+        assert deployment["model"] == info["model"]
+        assert deployment["deployment"] == {
+            "git_sha": None,
+            "bundle_sha256": None,
+            "image_digest": None,
+        }
         row = dict.fromkeys(info["feature_names"])
         assert client.post("/v1/predict", json={"sensors": row}).status_code == 200
         assert client.get("/docs").status_code == 200
