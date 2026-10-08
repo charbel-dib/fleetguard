@@ -7,8 +7,10 @@ reference classifiers, regularized logistic regression and tree ensembles, then 
 threshold using the challenge cost: **10 × false positives + 500 × false negatives**.
 
 The package includes verified source snapshots, group-aware cross-validation, isolated calibration
-and threshold tuning, saved inference pipelines, experiment figures and CI. An API and web
-application follow the model comparison and optimization work.
+and threshold tuning, saved inference pipelines, budgeted Optuna search, a PyTorch MLP, local MLflow tracking,
+experiment figures and CI. Version 0.4 adds a calibrated frozen release, permutation/error audits,
+CPU resource measurements, a model card and a one-shot official-test evaluation.
+An API and web application follow this freeze.
 
 ## What is being predicted?
 
@@ -46,9 +48,13 @@ For the model comparison introduced in version 0.2:
 uv run --frozen --extra dev fleetguard compare
 ```
 
-Existing users: apply the changed files as described in [UPDATE_02.md](UPDATE_02.md).
+Existing users: apply the latest changed files using [UPDATE_04.md](UPDATE_04.md).
+Optimization is documented in [UPDATE_03.md](UPDATE_03.md); its Windows smoke repair is in
+[HOTFIX_03_01.md](HOTFIX_03_01.md).
+The preceding comparison update is documented in [UPDATE_02.md](UPDATE_02.md).
 
-These commands work in PowerShell too. The archive download is about 54 MiB. The complete training
+On Windows, use the scripts below if the repository is under OneDrive.
+The archive download is about 54 MiB. The complete training
 run needs substantially more memory than the download size because parsing and preprocessing
 materialize numerical arrays. A CPU is sufficient for this increment.
 
@@ -188,21 +194,87 @@ The official test has not been evaluated. These results use a different protocol
 sample size from the original baseline and are not a same-data before/after comparison.
 The measured comparison and figures are in [docs/results/comparison-02.md](docs/results/comparison-02.md).
 
+## Budgeted optimization and a PyTorch MLP
+
+Version 0.3 adds the optional `research` extra. Existing baseline/comparison commands work
+without it. The locked research environment uses PyTorch 2.8.0 with CUDA 12.6 on Linux/Windows.
+The full XGBoost package also includes GPU support. The supplied comparison and optimization
+configs select `device = "cuda"`; use `"cpu"` in those configs on a machine without CUDA.
+Optimization applies this setting to both XGBoost and MLP training; comparison applies it to
+XGBoost. Preprocessing, scikit-learn models and inference still run on CPU. After each GPU
+XGBoost fit, its prediction device is set to CPU before threshold tuning and scoring so pandas
+inputs use direct CPU prediction without the mismatched-device DMatrix fallback.
+
+```bash
+uv sync --frozen --extra dev --extra research
+uv run --no-sync python -m fleetguard optimize
+```
+
+On Windows, especially for a repository under OneDrive:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1 -Research
+. .\scripts\use-environment.ps1 -Research
+uv run --no-sync python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
+uv run --no-sync python -m fleetguard optimize
+```
+
+The scripts place the environment/cache in `LOCALAPPDATA`, force copy mode, stop after errors,
+and use the selected Python rather than an executable from Conda. Configure each new terminal
+with `use-environment.ps1`. This avoids the hardlink/partial-installation errors encountered
+while upgrading. The checks script runs all three offline smokes plus tests, lint and build.
+
+`configs/optimization.toml` defines six sequential XGBoost trials and four MLP trials. Each uses
+three development scoring folds with the same fitting/calibration/threshold roles as comparison.
+A group-aware split **inside fit** selects MLP epochs. The MLP is then refitted on all fit rows
+and sigmoid-calibrated on the separate calibration role. Preprocessing and random oversampling
+remain inside fit. Fixed controls isolate signed-log, robust scaling and oversampling effects.
+
+The selected candidate is frozen before scoring retained validation. Additional partition seeds
+and fit-size learning curves are descriptive checks with fixed parameters. Optuna reuses scoring
+folds, so its best CV cost is a selection score with possible optimism, not an independent estimate.
+The official test remains unused. See [the methodology](docs/optimization-methodology.md) and
+[ADR 0003](docs/decisions/0003-bound-search-and-keep-mlp-stopping-inside-fit.md).
+
+MLflow records a local SQLite parent run with trial/control children, parameters, metrics,
+provenance and aggregate figures. Telemetry is disabled. After configuring the Windows terminal:
+
+```powershell
+uv run --no-sync mlflow server --backend-store-uri sqlite:///artifacts/tracking/mlflow.db --host 127.0.0.1 --port 5000 --workers 1
+```
+
+Open http://127.0.0.1:5000. Keep the server local. Data, tracking databases and trained models are
+ignored by Git. On other platforms, set `MLFLOW_DISABLE_TELEMETRY=true` before starting the server.
+
+The executed reference run selects tuned XGBoost: search CV cost 37,350 versus 38,740 for
+the fixed XGBoost control. On retained validation, its frozen threshold produces 410 FP and
+11 FN: cost 9,600, recall 94.5%, precision 31.55%. This lowers challenge cost while increasing
+alerts; AP and Brier worsen versus the previous unweighted reference. The small-budget MLP
+remains behind XGBoost on the three partition seeds. RobustScaler-only logistic fails convergence
+under its common 100-iteration control budget and is explicitly excluded.
+Measured results, tradeoffs and figures are recorded in [docs/results/optimization-03.md](docs/results/optimization-03.md).
+
 ## Checks and CI
 
 ```bash
 uv run --frozen --extra dev ruff format --check .
 uv run --frozen --extra dev ruff check .
-uv run --frozen --extra dev pytest
+uv run --frozen --extra dev python -m pytest
 uv run --frozen --extra dev python -m fleetguard.smoke
 uv run --frozen --extra dev python -m fleetguard.comparison_smoke
 uv run --frozen --extra dev python -m build
 ```
 
-CI runs on Python 3.11 and 3.12. It tests CSV parsing, data integrity, grouped splits, cost
+For research verification, install both extras and run
+`uv run --no-sync python -m fleetguard.optimization_smoke` too. Research tests skip when their
+optional dependencies are absent; CI installs them and runs the complete suite.
+
+Linux CI runs on Python 3.11 and 3.12; a Windows Python 3.12 job runs the copy-mode
+PowerShell checks. It tests CSV parsing, data integrity, grouped splits, cost
 calculations, exact threshold search, preprocessing isolation, artifact reloads and batch inference.
 It also tests separated roles, frozen calibration, champion selection independent of retained
-validation labels, and XGBoost artifact reloads. It builds a wheel and smoke-tests that wheel
+validation labels, PyTorch epoch-role isolation, local tracking and XGBoost/MLP artifact reloads.
+It builds a wheel and smoke-tests that wheel
 outside the source directory. The synthetic smoke
 fixture exercises the software offline and is never presented as a Scania benchmark.
 
@@ -236,8 +308,10 @@ Version the code, config, lockfile and small documented experiment summaries.
 The original baseline selects thresholds and models on one development holdout. Version 0.2
 adds train-only CV with separate calibration and threshold roles, but selecting among candidates
 still induces optimism. The retained validation has already been inspected in the baseline.
-The next increment adds bounded hyperparameter search, deeper ablations, a PyTorch MLP and
-model interpretation before freezing the official-test evaluation.
+Version 0.3 adds budgeted search, controlled ablations and an MLP. Search folds are reused for
+selection, and the recorded stability concerns partition seeds with model seed fixed.
+Next: interpretation, error review, latency/memory and an operational decision before the
+model freeze and official-test evaluation.
 
 Duplicate grouping addresses only identical released feature rows. Anonymization prevents
 physical explanations of individual sensors and does not allow us to rule out repeated trucks,
@@ -256,3 +330,48 @@ FleetGuard source code is released under the [MIT license](LICENSE). The dataset
 and retains its own terms. UCI currently displays CC BY 4.0; the source CSV preamble and description
 include a GPL v3-or-later notice from Scania. Both are recorded in
 [docs/dataset.md](docs/dataset.md); the code license does not replace either dataset notice.
+
+## Frozen release (0.4)
+
+Use a **complete official** update 03 run whose champion is uncalibrated `xgboost_tuned`:
+
+```bash
+uv run --no-sync python -m fleetguard audit --run artifacts/optimization/YOUR_COMPLETE_RUN
+# Read the printed release model_card.md, decision.json and freeze.json.
+uv run --no-sync python -m fleetguard evaluate-test --run artifacts/releases/YOUR_RELEASE --final
+```
+
+The audit reuses the base model and recorded roles. It compares raw/sigmoid via grouped calibration-role
+OOF Brier, fits the winning map there, and tunes the challenge-cost threshold on the separate threshold
+role. The pipeline/decision is frozen before retained-validation diagnostics and official-test scoring.
+Inference verifies the freeze. No official-test threshold sweep or model adjustment is performed.
+A receipt shared across runs in the same raw-data copy blocks accidental repeat evaluation attempts,
+including interrupted ones. Do not delete receipts or `final_test` to retry a different model.
+Legacy run evaluation remains supported; for the published release protocol, use the audited release.
+
+Measured reference (official test, **16,000 rows / 375 APS positives**):
+
+| FP | FN | Recall | Precision | Average precision | Brier | Challenge cost | Flagged |
+|---:|---:|---:|---:|---:|---:|---:|---:|
+| 475 | 16 | 95.73% | 43.05% | 0.88444 | 0.007538 | 12,750 | 5.21% |
+
+The frozen threshold is **0.002490004285364349** on the sigmoid score scale. Source raw and release
+make identical retained-validation decisions (410 FP / 11 FN), with improved validation Brier
+0.013906 → 0.007209. Calibration does not establish reliable probabilities in another fleet.
+The published official test has no exact feature-row overlap with official train. Challenge cost
+units are not euros; dataset labels describe failure attribution, not healthy-versus-future-failing trucks.
+
+Inspect [the complete model card](docs/results/release-04.md),
+[aggregate evidence](docs/results/release-04.json), and [methodology](docs/release-methodology.md).
+Local outputs include detailed FP/FN, missingness slices, per-column and grouped permutation audits,
+inspection-budget scenarios, five figures and an isolated CPU microbenchmark. Only aggregates and
+figures are versioned; source data, individual predictions and model weights remain local.
+
+Run the offline contract smoke (core dependencies only):
+
+```bash
+uv run --no-sync python -m fleetguard.release_smoke
+```
+
+Subsequent API/UI/cloud increments serve this release. Since final outcomes are now published,
+reusing the same test to improve a model cannot be presented as a fresh untouched evaluation.

@@ -1,0 +1,189 @@
+{
+  "release_id": "20261007T210839Z-3b5571e8",
+  "decision": {
+    "source_run": "20261007T184315Z-a4e5b402",
+    "source_champion": "xgboost_tuned",
+    "source_pipeline_sha256": "4942cf57ad71d717d71d4a26e789bfcb3c92e4d1937753061486d22edbf50261",
+    "model": "xgboost_release",
+    "calibration": "sigmoid",
+    "calibration_selection": "pooled grouped calibration-role OOF Brier; raw wins ties",
+    "policy": "challenge_cost",
+    "threshold": 0.002490004285364349,
+    "threshold_selection": "threshold role only; min cost, FN, FP, highest threshold",
+    "costs": {
+      "false_positive_cost": 10,
+      "false_negative_cost": 500
+    },
+    "parameters": {
+      "n_estimators": 220,
+      "max_depth": 2,
+      "learning_rate": 0.1956781268179795,
+      "subsample": 0.6414857690285857,
+      "colsample_bytree": 0.6453903467416517,
+      "reg_lambda": 13.41145053932637,
+      "class_weight": "balanced"
+    },
+    "frozen_at_utc": "2026-10-07T21:08:40.510353+00:00",
+    "base_model_refitted": false,
+    "validation_used_for_this_decision": false,
+    "validation_previously_observed_in_development": true,
+    "official_test_used_for_selection": false
+  },
+  "validation": {
+    "release": {
+      "rows": 12000,
+      "threshold": 0.002490004285364349,
+      "tn": 11390,
+      "fp": 410,
+      "fn": 11,
+      "tp": 189,
+      "accuracy": 0.9649166666666666,
+      "balanced_accuracy": 0.9551271186440677,
+      "precision": 0.31552587646076796,
+      "recall": 0.945,
+      "f1": 0.47309136420525655,
+      "average_precision": 0.8135889740452056,
+      "roc_auc": 0.9875792372881356,
+      "brier_score": 0.007208747342132087,
+      "cost": 9600,
+      "cost_per_row": 0.8,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.049916666666666665
+    },
+    "source_raw": {
+      "rows": 12000,
+      "threshold": 0.1768258512020111,
+      "tn": 11390,
+      "fp": 410,
+      "fn": 11,
+      "tp": 189,
+      "accuracy": 0.9649166666666666,
+      "balanced_accuracy": 0.9551271186440677,
+      "precision": 0.31552587646076796,
+      "recall": 0.945,
+      "f1": 0.47309136420525655,
+      "average_precision": 0.8135889740452056,
+      "roc_auc": 0.9875792372881356,
+      "brier_score": 0.013906244547418477,
+      "cost": 9600,
+      "cost_per_row": 0.8,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.049916666666666665
+    }
+  },
+  "calibration_cv": [
+    {
+      "method": "raw",
+      "brier_score": 0.0113094141706824,
+      "average_precision": 0.8612121676403754,
+      "rows": 9600
+    },
+    {
+      "method": "sigmoid",
+      "brier_score": 0.0058185853080319,
+      "average_precision": 0.8602332018956488,
+      "rows": 9600
+    }
+  ],
+  "benchmark": {
+    "load_seconds": 0.1888908479999145,
+    "pipeline_bytes": 33497,
+    "process_peak_rss_bytes": 203227136,
+    "python_traced_peak_bytes": 11703485,
+    "memory_scope": "whole benchmark process; RSS includes imports and native allocations",
+    "rss_measurement": "proc VmHWM",
+    "latency_scope": "sensor DataFrame to score; excludes CSV parsing, HTTP and network",
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+    "python": "3.12.14",
+    "processor": "x86_64",
+    "logical_cpus": 9,
+    "available_cpus": 9,
+    "thread_limit": 1,
+    "threadpools": [
+      {
+        "user_api": "openmp",
+        "internal_api": "openmp",
+        "num_threads": 1,
+        "prefix": "libgomp",
+        "version": null
+      },
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas",
+        "version": "0.3.31.dev",
+        "threading_layer": "pthreads",
+        "architecture": "SkylakeX"
+      },
+      {
+        "user_api": "blas",
+        "internal_api": "openblas",
+        "num_threads": 1,
+        "prefix": "libscipy_openblas",
+        "version": "0.3.34.106.0",
+        "threading_layer": "pthreads",
+        "architecture": "SkylakeX"
+      }
+    ],
+    "batches": [
+      {
+        "batch_rows": 1,
+        "repeats": 20,
+        "warmup_seconds": 0.01736674699998275,
+        "median_ms": 2.7923550000537034,
+        "p95_ms": 3.4665795000023536,
+        "rows_per_second_at_median": 358.1206544227964
+      },
+      {
+        "batch_rows": 128,
+        "repeats": 20,
+        "warmup_seconds": 0.014998882999975649,
+        "median_ms": 3.028457000027629,
+        "p95_ms": 3.4122161000141205,
+        "rows_per_second_at_median": 42265.747870559906
+      },
+      {
+        "batch_rows": 1024,
+        "repeats": 20,
+        "warmup_seconds": 0.01726723599995239,
+        "median_ms": 4.759745000001203,
+        "p95_ms": 4.94319684997322,
+        "rows_per_second_at_median": 215137.57564738052
+      }
+    ],
+    "python_tracing_enabled_during_latency": false,
+    "python_memory_scope": "maximum traced peak of model loading or one batch warm-up"
+  },
+  "official_test": {
+    "model": "xgboost_release",
+    "metrics": {
+      "rows": 16000,
+      "threshold": 0.002490004285364349,
+      "tn": 15150,
+      "fp": 475,
+      "fn": 16,
+      "tp": 359,
+      "accuracy": 0.9693125,
+      "balanced_accuracy": 0.9634666666666667,
+      "precision": 0.4304556354916067,
+      "recall": 0.9573333333333334,
+      "f1": 0.5938792390405294,
+      "average_precision": 0.8844418423730546,
+      "roc_auc": 0.99499264,
+      "brier_score": 0.007538216537048516,
+      "cost": 12750,
+      "cost_per_row": 0.796875,
+      "false_positive_cost": 10,
+      "false_negative_cost": 500,
+      "inspection_rate": 0.052125
+    },
+    "feature_rows_also_present_in_official_train": 0,
+    "test_file_sha256": "2cdf6f7661c7b4c63333c93cdec36a3a82350176b604a2312cf82799fb2712f3",
+    "threshold_source": "development_threshold_role",
+    "evaluation_policy": "frozen_champion_only; no test policy sweep or retuning",
+    "freeze_sha256": "f23443220016154c65414c6a4b6e4669ee37e8649ff68818e7debf6069e81c6a"
+  }
+}

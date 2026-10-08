@@ -1,0 +1,30 @@
+{
+  "method": "percentile bootstrap of complete identical-feature groups",
+  "coverage": 0.95,
+  "seed": 47,
+  "repeats": 500,
+  "groups": 16000,
+  "scope": "conditional on this fixed model and snapshot; excludes training/selection uncertainty",
+  "intervals": {
+    "cost_per_row": {
+      "lower": 0.594015625,
+      "upper": 1.056609375,
+      "valid_replicates": 500
+    },
+    "recall": {
+      "lower": 0.9357783566803679,
+      "upper": 0.973893570026178,
+      "valid_replicates": 500
+    },
+    "precision": {
+      "lower": 0.394440168814724,
+      "upper": 0.4617591064898682,
+      "valid_replicates": 500
+    },
+    "inspection_rate": {
+      "lower": 0.0488125,
+      "upper": 0.05556874999999999,
+      "valid_replicates": 500
+    }
+  }
+}
