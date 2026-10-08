@@ -17,6 +17,7 @@ inner_folds = 5
 calibration_fold = 0
 threshold_fold = 1
 n_jobs = 2
+device = "cuda"
 models = [
   "always_negative", "class_prior", "logistic", "logistic_balanced",
   "logistic_no_indicator", "logistic_log_robust", "random_forest",

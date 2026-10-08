@@ -200,3 +200,34 @@ les tests de non-interférence des labels et la documentation restent nécessair
 
 Read [release methodology](release-methodology.md), [ADR 0004](decisions/0004-freeze-calibration-policy-and-consume-test-once.md)
 and the [model card](results/release-04.md).
+
+
+## Incrément 5 — rendre la décision disponible en HTTP
+
+Le pipeline appris et le seuil forment une seule décision. L'API recharge cet état une fois au
+startup, vérifie son freeze et réalise une prédiction de chauffe. Elle ne recalibre pas à partir
+des données entrantes. Le service devient ready seulement après ces contrôles ; live indique
+que l'application répond. Un modèle invalide fait échouer le démarrage.
+
+Un schéma typé ne remplace pas le contrat ML : Pydantic vérifie les types/bornes, et le predictor
+vérifie que chaque capteur attendu est présent. `null` décrit une mesure absente ; omettre une clé
+rend le schéma incomplet. Refuser les booléens, chaînes numériques et clés JSON dupliquées évite
+les interprétations silencieuses. La limite de corps compte les octets reçus plutôt que de croire
+un Content-Length fourni par le client.
+
+Une fonction async ne rend pas un calcul scientifique non bloquant. L'inférence synchrone passe
+dans un thread, avec un seul slot et un lock ; la boucle HTTP reste disponible pour un health
+admis pendant ce calcul. La limite serveur borne les connexions/tasks et peut produire 503 en
+saturation. Elle ne prouve pas une capacité de charge : celle-ci devra être mesurée.
+
+Le bundle contient le contrat de la release ; l'image contient le code et les dépendances. Les
+séparer permet de tester le container avec une fixture synthétique et de monter le modèle figé
+en lecture seule. L'identité/hashes dans chaque réponse permettent de vérifier quel modèle répond.
+Les checksums ne rendent pas un joblib inconnu sûr : la confiance et la promotion de l'artefact
+restent des responsabilités de déploiement.
+
+L'égalité des scores HTTP/local sur quatre lignes du train vérifie l'intégration. Elle ne mesure
+ni la généralisation ni la latence en charge. Le test officiel a déjà été évalué dans l'update 04 ;
+l'API réutilise le freeze et ne réouvre pas cette expérience pour ajuster la décision.
+
+Lis [le contrat API](api-contract.md) et [ADR 0005](decisions/0005-load-one-frozen-release-and-bound-http-inputs.md).

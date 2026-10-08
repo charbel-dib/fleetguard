@@ -39,13 +39,18 @@ reported limits reflect the anonymized historical dataset. The reference experim
 follow UPDATE_04.md to reproduce it locally and integrate the feature branch through CI/PR.
 Future implementation stages reuse the frozen release, without tuning on published test outcomes.
 
-## 5. Inference service
+## 5. Inference service — delivered in update 05; integration pending
 
-Add serving/predictor.py and FastAPI/Pydantic endpoints: health, readiness, individual prediction
-and batch prediction. Validate schema and limits, report model version, compare API/local scores
-and package a trusted artifact with Docker.
+FastAPI/Pydantic health/readiness, single/batch prediction, exact frozen schema, streamed body and
+row caps, strict finite numeric input, identity hashes and startup-only verified loading. Inference
+runs outside the event loop with one worker slot. A twelve-file minimal bundle is mounted read-only
+by an unprivileged serving-only Docker image. Windows scripts and CI include the serving extra.
 
-Acceptance: deterministic inference contract, bad-input handling and API/container tests.
+Acceptance: API tests and real HTTP/local parity passed on the frozen reference release; no training,
+retuning or official-test re-evaluation. Follow UPDATE_05.md for your release and feature branch.
+The image build/run job is provided, but Docker was unavailable during local verification. Confirm
+container health/parity locally and green remote Linux/Windows/container CI before merging.
+Capacity, browser CORS and public deployment are subsequent work.
 
 ## 6. Professional web application
 

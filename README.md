@@ -10,7 +10,8 @@ The package includes verified source snapshots, group-aware cross-validation, is
 and threshold tuning, saved inference pipelines, budgeted Optuna search, a PyTorch MLP, local MLflow tracking,
 experiment figures and CI. Version 0.4 adds a calibrated frozen release, permutation/error audits,
 CPU resource measurements, a model card and a one-shot official-test evaluation.
-An API and web application follow this freeze.
+Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract, with a minimal
+artifact bundle, a serving-only Dockerfile and container CI. The web application is next.
 
 ## What is being predicted?
 
@@ -48,7 +49,7 @@ For the model comparison introduced in version 0.2:
 uv run --frozen --extra dev fleetguard compare
 ```
 
-Existing users: apply the latest changed files using [UPDATE_04.md](UPDATE_04.md).
+Existing users: apply the latest changed files using [UPDATE_05.md](UPDATE_05.md).
 Optimization is documented in [UPDATE_03.md](UPDATE_03.md); its Windows smoke repair is in
 [HOTFIX_03_01.md](HOTFIX_03_01.md).
 The preceding comparison update is documented in [UPDATE_02.md](UPDATE_02.md).
@@ -119,7 +120,8 @@ uv run --frozen --extra dev fleetguard evaluate-test --run $run --final
 This evaluates only the validation-selected champion, without retraining or threshold adjustment.
 Costs are read from the saved model, not from a potentially edited config. The command checks the
 source snapshot and refuses to overwrite an existing final-test report for that run. It cannot
-prevent test reuse across different runs; preserving the test holdout remains an experimental rule.
+prevent test reuse across different legacy runs; preserving the test holdout remains an experimental rule.
+The current audited-release protocol below adds a snapshot-wide local receipt.
 
 ## First experiment
 
@@ -166,8 +168,8 @@ environment. The holdout contains 12,000 observations, including 200 positives.
 
 The two logistic variants tie on cost; the unweighted model is selected by its higher average
 precision (0.8008 vs 0.7658). Thresholds were selected on this holdout, so these development
-results should not be interpreted as unbiased final-test estimates. The official test has not
-been evaluated. Full metrics and source/environment provenance are in
+results should not be interpreted as unbiased final-test estimates. At the baseline stage, the official test had not
+been evaluated; final release results are now recorded below. Full metrics and source/environment provenance are in
 [docs/results/baseline-validation.md](docs/results/baseline-validation.md).
 
 ## Train-only model comparison
@@ -190,20 +192,14 @@ existing `predict --run ...` command accepts that run. Full details are in
 The full Scania run recorded for this increment selected XGBoost with an out-of-fold cost of
 38,740 over 48,000 scored observations. Its frozen retained-validation decision produced
 181 false positives and 17 false negatives: cost 10,310, recall 91.5%, precision 50.27%.
-The official test has not been evaluated. These results use a different protocol and fitting
+At that comparison stage, the official test had not been evaluated. These results use a different protocol and fitting
 sample size from the original baseline and are not a same-data before/after comparison.
 The measured comparison and figures are in [docs/results/comparison-02.md](docs/results/comparison-02.md).
 
 ## Budgeted optimization and a PyTorch MLP
 
 Version 0.3 adds the optional `research` extra. Existing baseline/comparison commands work
-without it. The locked research environment uses PyTorch 2.8.0 with CUDA 12.6 on Linux/Windows.
-The full XGBoost package also includes GPU support. The supplied comparison and optimization
-configs select `device = "cuda"`; use `"cpu"` in those configs on a machine without CUDA.
-Optimization applies this setting to both XGBoost and MLP training; comparison applies it to
-XGBoost. Preprocessing, scikit-learn models and inference still run on CPU. After each GPU
-XGBoost fit, its prediction device is set to CPU before threshold tuning and scoring so pandas
-inputs use direct CPU prediction without the mismatched-device DMatrix fallback.
+without it. The locked research environment uses PyTorch CPU on Linux/Windows, independent of CUDA.
 
 ```bash
 uv sync --frozen --extra dev --extra research
@@ -215,14 +211,14 @@ On Windows, especially for a repository under OneDrive:
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\scripts\check.ps1 -Research
 . .\scripts\use-environment.ps1 -Research
-uv run --no-sync python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
 uv run --no-sync python -m fleetguard optimize
 ```
 
 The scripts place the environment/cache in `LOCALAPPDATA`, force copy mode, stop after errors,
 and use the selected Python rather than an executable from Conda. Configure each new terminal
 with `use-environment.ps1`. This avoids the hardlink/partial-installation errors encountered
-while upgrading. The checks script runs all three offline smokes plus tests, lint and build.
+while upgrading. The checks script runs baseline/comparison/release smokes plus tests, lint and build;
+`-Research` adds optimization and `-Serve` adds the real HTTP API smoke.
 
 `configs/optimization.toml` defines six sequential XGBoost trials and four MLP trials. Each uses
 three development scoring folds with the same fitting/calibration/threshold roles as comparison.
@@ -233,7 +229,7 @@ remain inside fit. Fixed controls isolate signed-log, robust scaling and oversam
 The selected candidate is frozen before scoring retained validation. Additional partition seeds
 and fit-size learning curves are descriptive checks with fixed parameters. Optuna reuses scoring
 folds, so its best CV cost is a selection score with possible optimism, not an independent estimate.
-The official test remains unused. See [the methodology](docs/optimization-methodology.md) and
+At that optimization stage, the official test remained unused. See [the methodology](docs/optimization-methodology.md) and
 [ADR 0003](docs/decisions/0003-bound-search-and-keep-mlp-stopping-inside-fit.md).
 
 MLflow records a local SQLite parent run with trial/control children, parameters, metrics,
@@ -265,9 +261,11 @@ uv run --frozen --extra dev python -m fleetguard.comparison_smoke
 uv run --frozen --extra dev python -m build
 ```
 
-For research verification, install both extras and run
+For research verification, install `dev` and `research`, and run
 `uv run --no-sync python -m fleetguard.optimization_smoke` too. Research tests skip when their
-optional dependencies are absent; CI installs them and runs the complete suite.
+optional dependencies are absent; CI installs `dev`, `research` and `serve` for the complete suite.
+Serving tests cover JSON contracts, startup integrity, body limits and prediction parity.
+A separate container job builds the image and probes an explicit synthetic mounted bundle.
 
 Linux CI runs on Python 3.11 and 3.12; a Windows Python 3.12 job runs the copy-mode
 PowerShell checks. It tests CSV parsing, data integrity, grouped splits, cost
@@ -310,8 +308,8 @@ adds train-only CV with separate calibration and threshold roles, but selecting 
 still induces optimism. The retained validation has already been inspected in the baseline.
 Version 0.3 adds budgeted search, controlled ablations and an MLP. Search folds are reused for
 selection, and the recorded stability concerns partition seeds with model seed fixed.
-Next: interpretation, error review, latency/memory and an operational decision before the
-model freeze and official-test evaluation.
+Version 0.4 completed the audits, CPU microbenchmark, freeze and one-shot final evaluation.
+Version 0.5 serves that fixed decision. Next: a usable interface, deployment and measured operations.
 
 Duplicate grouping addresses only identical released feature rows. Anonymization prevents
 physical explanations of individual sensors and does not allow us to rule out repeated trucks,
@@ -373,5 +371,54 @@ Run the offline contract smoke (core dependencies only):
 uv run --no-sync python -m fleetguard.release_smoke
 ```
 
-Subsequent API/UI/cloud increments serve this release. Since final outcomes are now published,
+The API and subsequent UI/cloud increments serve this release. Since final outcomes are now published,
 reusing the same test to improve a model cannot be presented as a fresh untouched evaluation.
+
+
+## Local inference API (0.5)
+
+Use your existing **complete frozen release**, without re-running optimization or official test.
+On Windows, initialize every terminal with `. .\scripts\use-environment.ps1 -Research -Serve`.
+On Linux/macOS:
+
+```bash
+uv sync --frozen --extra dev --extra serve
+uv run --no-sync python -m fleetguard serve --release artifacts/releases/YOUR_RELEASE
+```
+
+Open <http://127.0.0.1:8000/docs>. The API exposes health/readiness, `/v1/model`,
+`/v1/predict` and `/v1/predict-batch`. Every row needs all frozen sensor keys, each a finite
+float32-compatible JSON number or explicit `null`. Default limits: 256 rows, 2 MiB body,
+16 admitted connections/tasks and one inference worker slot. Model identity and threshold travel
+with each prediction. Only a verified, warmed-up release becomes ready.
+
+With the server running, in a second configured terminal:
+
+```bash
+uv run --no-sync python scripts/probe-api.py --release artifacts/releases/YOUR_RELEASE
+uv run --no-sync python scripts/make-api-request.py --release artifacts/releases/YOUR_RELEASE --input sensors.csv --output reports/api-request.json
+```
+
+The probe compares HTTP scores against the local artifact. A sensor-only CSV can be converted to a
+valid JSON batch without entering 170 values manually. Without `--input`, the helper writes one
+explicit all-null contract probe; that is not a meaningful diagnosis. See [UPDATE_05.md](UPDATE_05.md)
+for the PowerShell POST, bundle/Docker workflow and Git commands.
+
+```bash
+uv run --no-sync python -m fleetguard bundle --release artifacts/releases/YOUR_RELEASE --output artifacts/serving/YOUR_RELEASE
+# Set FLEETGUARD_BUNDLE_DIR to that bundle's absolute path before running Compose.
+docker compose up --build -d
+# After verifying readiness, identity and parity:
+docker compose down
+```
+
+The image runs as UID 10001 and installs locked core + serving dependencies without research
+libraries. Compose mounts the bundle read-only; no models or raw data are baked into the image.
+The HTTP reference check passed on four training rows from the frozen official release, with
+unchanged hashes and decisions. It does not measure accuracy, production capacity or HTTP latency.
+Docker execution and remote CI results remain to be confirmed locally/on GitHub.
+
+Read [the complete v1 contract](docs/api-contract.md),
+[ADR 0005](docs/decisions/0005-load-one-frozen-release-and-bound-http-inputs.md), and
+[measured contract evidence](docs/results/api-05.json). This is a localhost service;
+public hosting, authentication/CORS, model promotion and operations follow in later increments.

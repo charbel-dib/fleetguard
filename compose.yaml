@@ -1,0 +1,27 @@
+services:
+  api:
+    build: .
+    image: fleetguard:0.5.0
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      FLEETGUARD_RELEASE_DIR: /models/release
+      FLEETGUARD_ALLOW_SYNTHETIC: "false"
+      FLEETGUARD_MAX_BATCH_ROWS: "256"
+      FLEETGUARD_MAX_REQUEST_BYTES: "2097152"
+      FLEETGUARD_MAX_CONCURRENCY: "16"
+    volumes:
+      - type: bind
+        source: ${FLEETGUARD_BUNDLE_DIR:?Set FLEETGUARD_BUNDLE_DIR to the serving bundle}
+        target: /models/release
+        read_only: true
+        bind:
+          create_host_path: false
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    init: true
