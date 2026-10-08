@@ -192,11 +192,17 @@ def require_complete(run_dir: Path) -> dict:
         raise ValueError("Only a complete training run can be used for inference or evaluation.")
     if sha256_file(run_dir / "split.csv") != run["split_sha256"]:
         raise ValueError("Split manifest checksum mismatch.")
-    if run.get("protocol") == "comparison_v1":
+    if run.get("protocol") in {"comparison_v1", "optimization_v1"}:
         for filename, key in (
             ("cv_roles.csv", "cv_roles_sha256"),
             ("final_roles.csv", "final_roles_sha256"),
         ):
             if sha256_file(run_dir / filename) != run[key]:
                 raise ValueError(f"Comparison role manifest checksum mismatch: {filename}.")
+    if run.get("protocol") == "release_v1":
+        from fleetguard.release_contract import verify_release
+
+        if sha256_file(run_dir / "freeze.json") != run["freeze_sha256"]:
+            raise ValueError("Release freeze checksum mismatch.")
+        verify_release(run_dir)
     return run

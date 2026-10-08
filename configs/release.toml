@@ -1,0 +1,13 @@
+[data]
+raw_dir = "data/raw"
+
+[output]
+releases_dir = "artifacts/releases"
+
+[audit]
+seed = 46
+calibration_folds = 3
+permutation_repeats = 3
+benchmark_repeats = 20
+batch_sizes = [1, 128, 1024]
+inspection_budgets = [0.01, 0.03, 0.05]

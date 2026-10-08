@@ -15,23 +15,29 @@ CPU XGBoost, frozen HGB sigmoid calibration, initial preprocessing ablations, OO
 error/reliability summaries and reproducible figures. Apply the delta archive and follow UPDATE_02.md
 for the feature branch, checks, push and PR. A local implementation does not establish a remote CI result.
 
-## 3. Optimization and ML coverage
+## 3. Optimization and ML coverage — delivered in update 03
 
-Add bounded Optuna search inside development, MLflow experiment tracking, train-fold-only
-resampling, deeper preprocessing ablations, multi-seed stability and learning curves.
-Build a PyTorch MLP with explicit training/evaluation modes, early stopping, checkpointing and
-controlled comparison against tree models. Confirm GPU identity/VRAM before selecting GPU settings.
+Bounded sequential Optuna search for XGBoost/MLP, local MLflow SQLite tracking, fit-only random
+oversampling, separate signed-log/RobustScaler controls, partition-seed stability and data-size
+learning curves. The PyTorch MLP selects epochs on a group-aware holdout inside fit, then refits
+fit before separate sigmoid calibration. CPU is the locked default.
 
-Acceptance: reproducible search budgets, controlled data roles and evidence that gains persist.
+Acceptance: budgets and roles are inspectable; experiments, limitations, tracking and portable
+inference are verified. Improved CV selection cost is not treated as an independent test gain.
+Follow UPDATE_03.md for the branch, Windows environment scripts, checks and PR.
 
-## 4. Interpretation and experimental freeze
+## 4. Interpretation and experimental freeze — delivered in update 04
 
-Add permutation importance/SHAP where appropriate, detailed FP/FN studies and calibrated-score
-assessment. Measure inference latency and memory, define the inspection operating point,
-write the model card, then perform the frozen official-test evaluation.
+Grouped calibration-role raw/sigmoid selection, fixed-threshold permutation audits (columns and
+prefix groups), FP/FN/missingness slices, frozen inspection scenarios, isolated CPU resource
+microbenchmark, verified inference freeze, model card and one-shot official-test evaluation.
+The shared local receipt is consumed before labels are loaded and remains consumed after failure.
+The benchmark excludes HTTP/network; runtime memory includes the interpreter and libraries.
 
 Acceptance: the selected model, threshold and preprocessing are fixed before test evaluation;
-reported limits reflect the anonymized historical dataset.
+reported limits reflect the anonymized historical dataset. The reference experiment is complete;
+follow UPDATE_04.md to reproduce it locally and integrate the feature branch through CI/PR.
+Future implementation stages reuse the frozen release, without tuning on published test outcomes.
 
 ## 5. Inference service
 
