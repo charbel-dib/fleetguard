@@ -1,6 +1,6 @@
 # FleetGuard — checklist jusqu'au portfolio
 
-Dernière mise à jour : incrément 5. Les étapes précédentes, dont l'update 04, sont déclarées
+Dernière mise à jour : incrément 6. Les étapes précédentes, dont l'update 05, sont déclarées
 terminées par toi.
 Les expériences/contrôles de référence sont vérifiés ici ; une CI GitHub distante n'est pas
 observée directement. Le guide du nouvel update part d'un main propre, PR précédente intégrée.
@@ -23,11 +23,15 @@ observée directement. Le guide du nouvel update part d'un main propre, PR préc
 - [x] **5. Service d'inférence — implémentation/référence** : FastAPI/Pydantic,
   live/ready, prédiction unitaire/batch, identité/hashes, schéma strict, limites de corps/lignes,
   chargement figé et tests HTTP/local sans entraînement. Bundle minimal et Docker/Compose livrés.
-- [ ] **5b. Intégration de cet update et vérification container** : appliquer le delta,
-  contrôles Windows verts, parité de ta release, build/exécution Docker et healthy/parité,
-  commit/push `feat/inference-api`, PR, CI Linux/Windows/container verte et fusion vers main.
-- [ ] **6. Interface professionnelle** : React/TypeScript, import CSV, revue des alertes,
-  diagnostics, expériences, accessibilité et tests des parcours.
+- [x] **5b. Intégration de l'update 05** : étape déclarée terminée ; les résultats de CI et
+  de Docker sur ton compte ne sont pas observés directement ici.
+- [x] **6. Interface professionnelle — implémentation/référence** : React/TypeScript,
+  import CSV strict, lots bornés/progression/annulation, identité figée, revue/tri/filtres/détails,
+  annotations et export ; diagnostics/expériences de référence clairement séparés du lot.
+  Build, unités, parcours HTTP réel, clavier/axe et affichage mobile vérifiés localement.
+- [ ] **6b. Intégration de cet update** : contrôles Windows/Python/frontend verts, parcours
+  avec ta release, commit/push `feat/alert-review-ui`, PR, CI Linux/Windows/container/frontend
+  verte et fusion vers main. La build reste locale jusqu'au déploiement.
 - [ ] **7. Cloud et CI/CD** : artefacts et stockage versionnés, infrastructure déclarée,
   staging, promotion du modèle, frontend/backend déployés et rollback vérifié.
 - [ ] **8. Exploitation** : logs/métriques, charge, erreurs/latence, dérive,

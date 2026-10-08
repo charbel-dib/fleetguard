@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException
 from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 
 from fleetguard import __version__
 from fleetguard.serving.middleware import RequestEnvelope, error_response
@@ -170,5 +171,14 @@ def create_app(settings=None):
             limiter=app.state.inference_limiter,
         )
         return {"model": predictor.identity, "rows": len(values), "predictions": values}
+
+    if settings.web_dir is not None:
+        web = settings.web_dir.resolve()
+        if not (web / "index.html").is_file() or not (web / "assets").is_dir():
+            raise ValueError(
+                "web_dir must contain a built frontend index.html and assets directory."
+            )
+        # Register last: /v1, /health and /docs retain their API routes.
+        app.mount("/", StaticFiles(directory=web, html=True), name="frontend")
 
     return app
