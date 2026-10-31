@@ -9,6 +9,7 @@ from threadpoolctl import threadpool_limits
 
 from fleetguard.artifacts import load_model, positive_scores, prepare_input
 from fleetguard.experiment import require_complete
+from fleetguard.fulltrain import is_fulltrain_release, verify_release
 from fleetguard.io import read_json, sha256_file
 
 FLOAT32_MAX = float(np.finfo(np.float32).max)
@@ -23,6 +24,9 @@ class InputError(ValueError):
 class Predictor:
     def __init__(self, settings):
         directory = settings.release_dir
+        if is_fulltrain_release(directory):
+            self._load_fulltrain(settings)
+            return
         run = require_complete(directory)
         if run.get("protocol") != "release_v1":
             raise ValueError("Serving requires an audited release_v1 artifact, not a training run.")
@@ -73,6 +77,45 @@ class Predictor:
         }
         self.costs = dict(metadata["costs"])
         # Validate deserialization and the inference path before becoming ready.
+        self.predict([{name: None for name in features}])
+
+    def _load_fulltrain(self, settings):
+        """Release 08+: one decision file and one model directory, verified by checksum."""
+        directory = settings.release_dir
+        decision = verify_release(directory)
+        kind = decision.get("dataset_kind", "official_aps")
+        if kind != "official_aps" and not (kind == "synthetic_smoke" and settings.allow_synthetic):
+            raise ValueError("Synthetic release serving requires explicit fixture mode.")
+        model, metadata = load_model(directory / "model")
+        features = metadata["feature_names"]
+        if kind == "official_aps" and len(features) != 170:
+            raise ValueError("Official APS releases require 170 sensor columns.")
+        if (
+            not features
+            or len(set(features)) != len(features)
+            or not all(isinstance(x, str) for x in features)
+        ):
+            raise ValueError("Release feature schema is invalid.")
+        threshold = metadata["threshold"]
+        if not math.isfinite(threshold) or not 0 <= threshold <= 1:
+            raise ValueError("Release threshold is invalid.")
+        self._model = model
+        self._lock = threading.Lock()
+        self.feature_names = tuple(features)
+        self._feature_set = set(features)
+        self.max_batch_rows = settings.max_batch_rows
+        self.identity = {
+            "release_id": decision["release_id"],
+            "name": metadata["name"],
+            "dataset_kind": kind,
+            "pipeline_sha256": metadata["pipeline_sha256"],
+            "freeze_sha256": sha256_file(directory / "decision.json"),
+            "threshold": float(threshold),
+            "calibration": metadata["calibration"],
+            "policy": "challenge_cost",
+            "score_semantics": metadata["score_semantics"],
+        }
+        self.costs = dict(metadata["costs"])
         self.predict([{name: None for name in features}])
 
     def predict(self, rows):

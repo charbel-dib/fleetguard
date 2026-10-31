@@ -3,10 +3,14 @@
 import shutil
 
 from fleetguard.experiment import require_complete
+from fleetguard.fulltrain import bundle_release as bundle_fulltrain
+from fleetguard.fulltrain import is_fulltrain_release
 from fleetguard.io import read_json
 
 
 def bundle_release(source, destination):
+    if is_fulltrain_release(source):
+        return bundle_fulltrain(source, destination)
     state = require_complete(source)
     if state.get("protocol") != "release_v1":
         raise ValueError("Only an audited release can be bundled.")

@@ -221,6 +221,7 @@ def freeze(raw_dir: Path, output: Path, config: FullTrainConfig | None = None) -
     )
     decision = {
         "protocol": "fulltrain_v1",
+        "dataset_kind": "official_aps",
         "release_id": output.name,
         "threshold": threshold,
         "threshold_source": "grouped_out_of_fold_training_scores",
@@ -323,3 +324,50 @@ def report(output: Path) -> str:
     text = "\n".join(lines) + "\n"
     (output / "report.md").write_text(text, encoding="utf-8")
     return text
+
+
+SERVING_FILES = ("decision.json", "model/pipeline.joblib", "model/metadata.json")
+
+
+def is_fulltrain_release(directory: Path) -> bool:
+    path = Path(directory) / "decision.json"
+    return path.is_file() and read_json(path).get("protocol") == "fulltrain_v1"
+
+
+def verify_release(directory: Path) -> dict:
+    """Check that the model, its metadata and the frozen decision still agree."""
+    directory = Path(directory)
+    decision = read_json(directory / "decision.json")
+    if decision.get("protocol") != "fulltrain_v1":
+        raise ValueError("Not a full-train release.")
+    if decision.get("official_test_used_for_selection") is not False:
+        raise ValueError("A release must not be selected using the official test.")
+    if sha256_file(directory / "model" / "pipeline.joblib") != decision["model_sha256"]:
+        raise ValueError("Release model checksum mismatch.")
+    metadata = read_json(directory / "model" / "metadata.json")
+    if not (
+        metadata["threshold"] == decision["threshold"]
+        and metadata.get("release_id") == decision["release_id"]
+        and metadata["costs"] == decision["config"]["costs"]
+    ):
+        raise ValueError("Release model/decision mismatch.")
+    return decision
+
+
+def bundle_release(source: Path, destination: Path) -> Path:
+    """Copy only what serving needs: the decision and the model directory."""
+    import shutil
+
+    verify_release(source)
+    destination.mkdir(parents=True, exist_ok=False)
+    try:
+        # decision.json is copied last, so an interrupted copy is never recognized as a release.
+        for relative in (*SERVING_FILES[1:], SERVING_FILES[0]):
+            path = destination / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source / relative, path)
+        verify_release(destination)
+    except BaseException:
+        shutil.rmtree(destination)
+        raise
+    return destination

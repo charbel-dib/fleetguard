@@ -9,6 +9,7 @@ import zipfile
 from pathlib import Path, PurePosixPath
 
 from fleetguard.experiment import require_complete
+from fleetguard.fulltrain import SERVING_FILES, is_fulltrain_release, verify_release
 from fleetguard.io import read_json, sha256_file, write_json
 from fleetguard.serving.predictor import Predictor
 from fleetguard.serving.settings import Settings
@@ -24,6 +25,9 @@ def require_sha256(value):
 
 
 def file_names(directory):
+    if is_fulltrain_release(directory):
+        verify_release(directory)
+        return sorted(SERVING_FILES)
     require_complete(directory)
     freeze = read_json(directory / "freeze.json")
     return sorted([*freeze["files"], "freeze.json", "run.json"])
@@ -78,8 +82,9 @@ def unpack_model(archive_path, expected_sha256, destination, *, allow_synthetic=
     with zipfile.ZipFile(archive_path) as archive:
         members = archive.infolist()
         names = [item.filename for item in members]
-        if len(names) != 12 or len(set(names)) != len(names):
-            raise ValueError("Expected exactly twelve distinct release files.")
+        fulltrain = set(names) == set(SERVING_FILES) and len(names) == len(SERVING_FILES)
+        if not fulltrain and (len(names) != 12 or len(set(names)) != len(names)):
+            raise ValueError("Expected a full-train or a twelve-file release archive.")
         if sum(item.file_size for item in members) > MAX_ARCHIVE_BYTES:
             raise ValueError("Uncompressed model archive exceeds 200 MiB.")
         for item in members:
@@ -97,12 +102,18 @@ def unpack_model(archive_path, expected_sha256, destination, *, allow_synthetic=
                 or (stat.S_IFMT(mode) not in {0, stat.S_IFREG})
             ):
                 raise ValueError("Unsafe model archive member.")
-        freeze = json.loads(archive.read("freeze.json"))
-        if set(names) != {*freeze["files"], "freeze.json", "run.json"}:
-            raise ValueError("Archive differs from its freeze file set.")
-        for name, expected in freeze["files"].items():
-            if hashlib.sha256(archive.read(name)).hexdigest() != require_sha256(expected):
+        if fulltrain:
+            decision = json.loads(archive.read("decision.json"))
+            model_bytes = archive.read("model/pipeline.joblib")
+            if hashlib.sha256(model_bytes).hexdigest() != require_sha256(decision["model_sha256"]):
                 raise ValueError("Archived release file checksum mismatch.")
+        else:
+            freeze = json.loads(archive.read("freeze.json"))
+            if set(names) != {*freeze["files"], "freeze.json", "run.json"}:
+                raise ValueError("Archive differs from its freeze file set.")
+            for name, expected in freeze["files"].items():
+                if hashlib.sha256(archive.read(name)).hexdigest() != require_sha256(expected):
+                    raise ValueError("Archived release file checksum mismatch.")
         destination.mkdir(parents=True, exist_ok=False)
         try:
             for item in members:
@@ -111,7 +122,10 @@ def unpack_model(archive_path, expected_sha256, destination, *, allow_synthetic=
                 path.write_bytes(archive.read(item))
                 path.chmod(0o644)
             # Checks all structural freeze invariants before loading the trusted model.
-            require_complete(destination)
+            if fulltrain:
+                verify_release(destination)
+            else:
+                require_complete(destination)
             return Predictor(
                 Settings(release_dir=destination, allow_synthetic=allow_synthetic)
             ).identity
