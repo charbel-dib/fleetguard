@@ -1,0 +1,40 @@
+{
+  "protocol": "fulltrain_v1",
+  "release_id": "release-08",
+  "threshold": 0.0034105557043328685,
+  "threshold_source": "grouped_out_of_fold_training_scores",
+  "official_test_used_for_selection": false,
+  "frozen_at_utc": "2026-10-31T18:09:19.275785+00:00",
+  "train_sha256": "bb484302e3a3a1c8ef5e1f0129c4dc7cbd58f350867f95b575461ca21ab6b9da",
+  "model_sha256": "98c90635feb8d23dfdd8c9138b5adc3a3f4d30e63af7e63b987598b385961e0e",
+  "config": {
+    "folds": 5,
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "positive_weight": 20.0,
+    "max_iter": 400,
+    "learning_rate": 0.05,
+    "max_leaf_nodes": 31,
+    "l2_regularization": 1.0,
+    "bootstrap_resamples": 1000,
+    "split_seed": 0,
+    "costs": {
+      "false_positive": 10,
+      "false_negative": 500
+    }
+  },
+  "out_of_fold": {
+    "rows": 60000,
+    "positives": 1000,
+    "tp": 963,
+    "fp": 1836,
+    "fn": 37,
+    "cost": 36860,
+    "recall": 0.963,
+    "precision": 0.3440514469453376,
+    "flagged_rate": 0.04665
+  }
+}

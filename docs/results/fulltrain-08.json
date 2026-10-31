@@ -1,0 +1,45 @@
+{
+  "release_id": "release-08",
+  "scored_at_utc": "2026-10-31T18:09:26.955876+00:00",
+  "test_sha256": "2cdf6f7661c7b4c63333c93cdec36a3a82350176b604a2312cf82799fb2712f3",
+  "threshold": 0.0034105557043328685,
+  "official_test": {
+    "rows": 16000,
+    "positives": 375,
+    "tp": 369,
+    "fp": 553,
+    "fn": 6,
+    "cost": 8530,
+    "recall": 0.984,
+    "precision": 0.4002169197396963,
+    "flagged_rate": 0.057625
+  },
+  "bootstrap_95": {
+    "cost": [
+      6409.75,
+      11160.0
+    ],
+    "recall": [
+      0.9705762468030691,
+      0.9948721227621483
+    ],
+    "precision": [
+      0.36766521320409207,
+      0.4329689910521444
+    ]
+  },
+  "references": [
+    {
+      "name": "IDA 2016 winner (Costa & Nascimento)",
+      "cost": 9920,
+      "fp": 542,
+      "fn": 9
+    },
+    {
+      "name": "IDA 2016 second place (Gondek, Hafner & Sampson)",
+      "cost": 10900,
+      "fp": 490,
+      "fn": 12
+    }
+  ]
+}
