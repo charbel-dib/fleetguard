@@ -14,6 +14,31 @@ Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract
 artifact bundle, a serving-only Dockerfile and container CI. Version 0.6 adds a React/TypeScript CSV review interface, published evidence views and browser tests.
 Version 0.7 prepares AWS deployment with versioned private model storage, digest-pinned images,
 explicit staging/production promotion and verified rollback helpers. Live cloud acceptance is pending.
+Release 08 adds a full-train protocol that lowers the official-test cost by a third.
+
+## Headline result (release 08)
+
+Official test, 16,000 trucks, 375 APS failures, model and threshold frozen before the test was read:
+
+| Model | Challenge cost | Missed failures | False alarms | Recall |
+|---|---:|---:|---:|---:|
+| **FleetGuard release 08** | **8,530** | **6** | 553 | **98.40%** |
+| IDA 2016 winner (Costa & Nascimento) | 9,920 | 9 | 542 | — |
+| IDA 2016 second place | 10,900 | 12 | 490 | — |
+| FleetGuard release 04 | 12,750 | 16 | 475 | 95.73% |
+
+Grouped 5-fold cross-validation on all 60,000 training rows chooses the cost-minimizing threshold;
+the final model averages three class-weighted histogram gradient boosting classifiers fit on the
+full training file. The cost's 95% bootstrap interval is 6,410–11,160, so the gap to the winner is
+indicative rather than conclusive. Full report: [docs/results/fulltrain-08.md](docs/results/fulltrain-08.md);
+protocol and disclosure: [ADR 0008](docs/decisions/0008-full-train-protocol.md).
+
+```bash
+python -m fleetguard fulltrain-freeze --output artifacts/fulltrain/YOUR_RELEASE
+python -m fleetguard fulltrain-test --output artifacts/fulltrain/YOUR_RELEASE --final
+```
+
+The HTTP service and AWS stack below still serve release 04 until release 08 is packaged for serving.
 
 ## What is being predicted?
 
@@ -351,7 +376,7 @@ A receipt shared across runs in the same raw-data copy blocks accidental repeat 
 including interrupted ones. Do not delete receipts or `final_test` to retry a different model.
 Legacy run evaluation remains supported; for the published release protocol, use the audited release.
 
-Measured reference (official test, **16,000 rows / 375 APS positives**):
+Release 04 measured reference, superseded by release 08 above (official test, **16,000 rows / 375 APS positives**):
 
 | FP | FN | Recall | Precision | Average precision | Brier | Challenge cost | Flagged |
 |---:|---:|---:|---:|---:|---:|---:|---:|
