@@ -76,6 +76,23 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
         help="Explicitly request the final-test evaluation.",
     )
+    fulltrain_freeze = commands.add_parser(
+        "fulltrain-freeze",
+        help="Release 08: fit on all training rows, freeze a threshold from grouped OOF scores.",
+    )
+    fulltrain_freeze.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
+    fulltrain_freeze.add_argument("--output", type=Path, required=True)
+    fulltrain_test = commands.add_parser(
+        "fulltrain-test", help="Release 08: score the official test once with the frozen model."
+    )
+    fulltrain_test.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
+    fulltrain_test.add_argument("--output", type=Path, required=True)
+    fulltrain_test.add_argument(
+        "--final",
+        action="store_true",
+        required=True,
+        help="Explicitly request the one-time official-test evaluation.",
+    )
     prediction = commands.add_parser(
         "predict", help="Batch inference from a plain sensor-only CSV."
     )
@@ -157,6 +174,21 @@ def _dispatch(args: argparse.Namespace) -> None:
             access_log=False,
             server_header=False,
         )
+    elif args.command == "fulltrain-freeze":
+        from fleetguard.fulltrain import freeze
+
+        decision = freeze(args.raw_dir, args.output)
+        logger.info(
+            "Frozen threshold %.6g; out-of-fold cost %s. Output: %s",
+            decision["threshold"],
+            decision["out_of_fold"]["cost"],
+            args.output,
+        )
+    elif args.command == "fulltrain-test":
+        from fleetguard.fulltrain import report, score_official_test
+
+        score_official_test(args.raw_dir, args.output)
+        print(report(args.output))
     elif args.command == "predict":
         require_complete(args.run)
         if args.output.exists():
