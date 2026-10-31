@@ -214,7 +214,7 @@ def freeze(raw_dir: Path, output: Path, config: FullTrainConfig | None = None) -
             "feature_names": list(features.columns),
             "threshold": threshold,
             "costs": config.costs,
-            "calibration": "none",
+            "calibration": "raw",
             "score_semantics": "class-weighted boosting ranking score, not a probability",
             "release_id": output.name,
         },

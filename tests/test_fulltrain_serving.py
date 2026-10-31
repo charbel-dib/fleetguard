@@ -30,7 +30,7 @@ def release(classification_frame, tmp_path):
             "feature_names": list(features.columns),
             "threshold": threshold,
             "costs": COSTS,
-            "calibration": "none",
+            "calibration": "none",  # legacy release 08 value, served as "raw"
             "score_semantics": "ranking score",
             "release_id": directory.name,
         },
@@ -74,6 +74,7 @@ def test_serves_fulltrain_release_with_identical_scores(release):
             "pos" if s >= threshold else "neg" for s in expected
         ]
         assert body["model"]["threshold"] == threshold
+        assert body["model"]["calibration"] == "raw"
         assert body["model"]["freeze_sha256"] == sha256_file(directory / "decision.json")
 
 

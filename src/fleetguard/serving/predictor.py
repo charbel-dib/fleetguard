@@ -111,7 +111,8 @@ class Predictor:
             "pipeline_sha256": metadata["pipeline_sha256"],
             "freeze_sha256": sha256_file(directory / "decision.json"),
             "threshold": float(threshold),
-            "calibration": metadata["calibration"],
+            # Uncalibrated scores are "raw" in the API contract (release 08 wrote "none").
+            "calibration": "raw" if metadata["calibration"] in {"none", "raw"} else "invalid",
             "policy": "challenge_cost",
             "score_semantics": metadata["score_semantics"],
         }
