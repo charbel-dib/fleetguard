@@ -246,7 +246,10 @@ resource "aws_ecs_cluster" "app" {
   name = local.name
 }
 resource "aws_ecs_task_definition" "app" {
-  family                   = local.name
+  family = local.name
+  # CI registers later revisions and the service may still run an older one. Replacing this resource
+  # must never delete a revision in use: the deploy helper reads the running revision first.
+  skip_destroy             = true
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "512"

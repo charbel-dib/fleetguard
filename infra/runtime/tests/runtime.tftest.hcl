@@ -22,6 +22,10 @@ run "private_origin_and_frozen_unprivileged_runtime" {
     error_message = "The ALB must admit the CloudFront VPC origin service security group, not only public CloudFront ranges."
   }
   assert {
+    condition     = aws_ecs_task_definition.app.skip_destroy
+    error_message = "Terraform must keep task revisions registered; CI and the running service may still use them."
+  }
+  assert {
     condition     = aws_cloudfront_vpc_origin.app.vpc_origin_endpoint_config[0].origin_protocol_policy == "http-only"
     error_message = "Origin transport is explicitly HTTP inside the VPC; do not claim end-to-end TLS."
   }
