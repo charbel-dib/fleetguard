@@ -1,6 +1,7 @@
 mock_provider "aws" {
   mock_data "aws_caller_identity" { defaults = { account_id = "123456789012" } }
   mock_data "aws_availability_zones" { defaults = { names = ["eu-west-3a", "eu-west-3b"] } }
+  mock_data "aws_security_group" { defaults = { id = "sg-0cloudfrontvpcorigin" } }
 }
 variables {
   environment = "staging"
@@ -15,6 +16,10 @@ run "private_origin_and_frozen_unprivileged_runtime" {
   assert {
     condition     = aws_lb.app.internal && aws_cloudfront_distribution.app.default_cache_behavior[0].viewer_protocol_policy == "redirect-to-https"
     error_message = "The origin must be private and the viewer must use HTTPS."
+  }
+  assert {
+    condition     = aws_vpc_security_group_ingress_rule.cloudfront_vpc_origin.ip_protocol == "tcp" && aws_vpc_security_group_ingress_rule.cloudfront_vpc_origin.from_port == 80 && aws_vpc_security_group_ingress_rule.cloudfront_vpc_origin.to_port == 80
+    error_message = "The ALB must admit the CloudFront VPC origin service security group, not only public CloudFront ranges."
   }
   assert {
     condition     = aws_cloudfront_vpc_origin.app.vpc_origin_endpoint_config[0].origin_protocol_policy == "http-only"

@@ -164,6 +164,21 @@ resource "aws_cloudfront_vpc_origin" "app" {
   }
   depends_on = [aws_internet_gateway.app, aws_lb_listener.app, aws_vpc_security_group_ingress_rule.cloudfront]
 }
+# A VPC origin reaches the internal ALB through CloudFront-managed network interfaces in this VPC.
+# Their private addresses are not in the public origin-facing prefix list: AWS attaches them to the
+# CloudFront-VPCOrigins-Service-SG group it creates on first VPC origin, which the ALB must admit.
+data "aws_security_group" "cloudfront_vpc_origin" {
+  vpc_id     = aws_vpc.app.id
+  name       = "CloudFront-VPCOrigins-Service-SG"
+  depends_on = [aws_cloudfront_vpc_origin.app]
+}
+resource "aws_vpc_security_group_ingress_rule" "cloudfront_vpc_origin" {
+  security_group_id            = aws_security_group.origin.id
+  referenced_security_group_id = data.aws_security_group.cloudfront_vpc_origin.id
+  ip_protocol                  = "tcp"
+  from_port                    = 80
+  to_port                      = 80
+}
 resource "aws_cloudfront_distribution" "app" {
   enabled         = true
   is_ipv6_enabled = true
