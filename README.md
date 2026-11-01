@@ -6,15 +6,11 @@ An unnecessary inspection and a missed failure do not have the same cost. FleetG
 reference classifiers, regularized logistic regression and tree ensembles, then selects a decision
 threshold using the challenge cost: **10 × false positives + 500 × false negatives**.
 
-The package includes verified source snapshots, group-aware cross-validation, isolated calibration
-and threshold tuning, saved inference pipelines, budgeted Optuna search, a PyTorch MLP, local MLflow tracking,
-experiment figures and CI. Version 0.4 adds a calibrated frozen release, permutation/error audits,
-CPU resource measurements, a model card and a one-shot official-test evaluation.
-Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract, with a minimal
-artifact bundle, a serving-only Dockerfile and container CI. Version 0.6 adds a React/TypeScript CSV review interface, published evidence views and browser tests.
-Version 0.7 prepares AWS deployment with versioned private model storage, digest-pinned images,
-explicit staging/production promotion and verified rollback helpers.
-Release 08 adds a full-train protocol that lowers the official-test cost by a third.
+**In one minute:** on the official IDA 2016 test, release 08 costs **8,530**, below the challenge
+winner (9,920), and catches 369 of 375 failures. The model and its threshold were frozen before the
+test was read. It is served by FastAPI behind a React review screen, deployed on AWS by GitHub
+Actions, and anyone can try it on the public demo. Earlier versions are summarized in
+[docs/history.md](docs/history.md).
 
 **Try it:** [public demo on Hugging Face](https://huggingface.co/spaces/Charbeld77/fleetguard)
 (sample trucks from the official test, or upload the UCI test file to reproduce the 8,530 cost).
