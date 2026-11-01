@@ -75,11 +75,10 @@ export default function Results({
     <section className="panel results" aria-labelledby="results-title">
       <div className="section-top">
         <div>
-          <p className="eyebrow">REVUE DU LOT</p>
           <h2 id="results-title">Des scores à examiner.</h2>
         </div>
         <button className="button secondary" onClick={download}>
-          Exporter la revue ↗
+          Exporter la revue
         </button>
       </div>
       <p className="subtle">
@@ -169,7 +168,7 @@ export default function Results({
                     aria-label={`Voir mesure ${p.row_index + 1}`}
                     onClick={() => setSelected(p)}
                   >
-                    Voir ↗
+                    Voir
                   </button>
                 </td>
               </tr>
@@ -217,7 +216,6 @@ export default function Results({
           <>
             <div className="section-top">
               <div>
-                <p className="eyebrow">DÉTAIL DE LA MESURE</p>
                 <h2 id="detail-title">Mesure {selected.row_index + 1}</h2>
               </div>
               <button className="button secondary" onClick={() => setSelected(null)} autoFocus>

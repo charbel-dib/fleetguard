@@ -40,7 +40,7 @@ use artificial inputs for the initial rollout. Public rate limiting/operational 
 
 ## Immutable model, code and image
 
-`python -m fleetguard.cloud pack` copies only the twelve frozen inference files. It excludes
+`python -m fleetguard.cloud pack` copies only the frozen inference files (twelve for releases 03–04, three for a full-train release). It excludes
 official-test predictions, sensor records and reports. ZIP member order/timestamps are fixed, so
 the same input bytes produce the same SHA256. It preserves the original model/calibration/threshold.
 The command loads a **trusted, locally created** model to verify inference; it never trains or reads

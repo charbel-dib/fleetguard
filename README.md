@@ -13,8 +13,29 @@ CPU resource measurements, a model card and a one-shot official-test evaluation.
 Version 0.5 serves that release through a bounded FastAPI/Pydantic HTTP contract, with a minimal
 artifact bundle, a serving-only Dockerfile and container CI. Version 0.6 adds a React/TypeScript CSV review interface, published evidence views and browser tests.
 Version 0.7 prepares AWS deployment with versioned private model storage, digest-pinned images,
-explicit staging/production promotion and verified rollback helpers. Live cloud acceptance is pending.
+explicit staging/production promotion and verified rollback helpers.
 Release 08 adds a full-train protocol that lowers the official-test cost by a third.
+
+**Try it:** [public demo on Hugging Face](https://huggingface.co/spaces/Charbeld77/fleetguard)
+(sample trucks from the official test, or upload the UCI test file to reproduce the 8,530 cost).
+
+## Live on AWS (staging, November 2026)
+
+Release 08 was deployed end to end by the GitHub pipeline, then torn down to stop costs:
+
+```
+browser ─HTTPS─▶ CloudFront ─VPC origin─▶ internal ALB ─▶ ECS Fargate task (FastAPI + React)
+                                                            ▲ image: ECR, immutable digest
+GitHub Actions ─OIDC, no stored keys─▶ IAM role per env     ▲ model: S3, versioned + SHA256
+```
+
+- No public IP on the load balancer; CloudFront reaches it through a VPC origin.
+- GitHub assumes a role per environment through OIDC; CloudTrail records every deployment.
+- Terraform state in S3 with native locking; ECS circuit breaker and 100% minimum healthy.
+- Four defects found only in the real cloud and fixed with tests: ALB ingress for the CloudFront
+  VPC-origin security group, task-definition revisions deleted on replacement (`skip_destroy`),
+  `ecs:DescribeTaskDefinition` requiring `Resource: "*"`, and v1 cost keys in the serving contract.
+- The staging stack is destroyed between sessions; the bootstrap layer (state, ECR, S3, roles) stays.
 
 ## Headline result (release 08)
 

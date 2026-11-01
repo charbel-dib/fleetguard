@@ -105,7 +105,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
           </div>
           <div className="two-col">
             <section className="panel">
-              <p className="eyebrow">ÉVALUATION FINALE UNIQUE</p>
               <h2>Ce que la décision manque.</h2>
               <p className="subtle">
                 Seuil {score(data.threshold)} · {data.calibration}. Aucun ajustement après le test.
@@ -150,7 +149,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
               </p>
             </section>
             <section className="panel">
-              <p className="eyebrow">QUALITÉ DU SCORE · VALIDATION</p>
               <h2>Calibration et décision.</h2>
               <p className="subtle">
                 Brier plus faible après calibration sur le rôle réservé. Les décisions de validation
@@ -171,7 +169,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
             </section>
           </div>
           <section className="panel">
-            <p className="eyebrow">MANQUE DE MESURES · VALIDATION</p>
             <h2>Chaque tranche a son dénominateur.</h2>
             <div className="table-scroll">
               <table>
@@ -212,7 +209,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
             </p>
           </section>
           <section className="panel">
-            <p className="eyebrow">SENSIBILITÉ · PERMUTATION GROUPÉE</p>
             <h2>Blocs de capteurs et coût.</h2>
             <p className="subtle">
               Cinq plus fortes hausses moyennes du coût par ligne, sur validation et à seuil fixe.
@@ -247,7 +243,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
         <>
           <div className="two-col">
             <section className="panel">
-              <p className="eyebrow">PROTOCOLE</p>
               <h2>Une décision, plusieurs rôles.</h2>
               <ol className="protocol">
                 <li>
@@ -269,7 +264,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
               </ol>
             </section>
             <section className="panel">
-              <p className="eyebrow">RECHERCHE BORNÉE</p>
               <h2>Le score de sélection a ses limites.</h2>
               <p>
                 Les essais Optuna et le champion réutilisent les folds de développement. Leur
@@ -289,7 +283,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
           <section className="panel">
             <div className="section-top">
               <div>
-                <p className="eyebrow">SCORING CV · 48 000 OBSERVATIONS</p>
                 <h2>Comparer dans un même protocole.</h2>
               </div>
               <label className="sort">
@@ -337,7 +330,6 @@ export default function Reference({ view }: { view: 'diagnostics' | 'experiments
         </>
       )}
       <section className="panel sources">
-        <p className="eyebrow">TRACER LES PREUVES</p>
         <h2>Sources versionnées.</h2>
         <p className="subtle">
           Reproduisez les expériences depuis le dépôt. Ces empreintes identifient les agrégats

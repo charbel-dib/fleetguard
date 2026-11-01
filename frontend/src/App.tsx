@@ -161,14 +161,9 @@ export default function App() {
         <a className="brand" href="/" aria-label="FleetGuard accueil">
           <span className="brand-mark">F</span>
           <span>
-            FleetGuard<small>APS intelligence</small>
+            FleetGuard<small>Pannes APS, camions Scania</small>
           </span>
         </a>
-        <div className="workspace">
-          <span className="dot" />
-          Espace local<span className="workspace-badge">DEV</span>
-        </div>
-        <p className="nav-label">EXPLORER</p>
         <nav aria-label="Navigation principale">
           {views.map((v) => (
             <button
@@ -181,15 +176,12 @@ export default function App() {
             >
               <span className="nav-icon">{v.icon}</span>
               {v.label}
-              <span className="nav-arrow">↗</span>
             </button>
           ))}
         </nav>
         <div className="sidebar-bottom">
-          <span className="sidebar-symbol">▥</span>
           <strong>Une décision traçable.</strong>
           <p>Pipeline, calibration et seuil conservés ensemble.</p>
-          <span className="sidebar-tag">MODÈLE FIGÉ · CPU</span>
           <small>
             Diagnostic historique APS.
             <br />
@@ -210,15 +202,11 @@ export default function App() {
         <main id="main">
           <div className="page-heading">
             <div>
-              <p className="eyebrow">FLEET WORKSPACE / {activeView.icon}</p>
               <h1 ref={heading} tabIndex={-1}>
                 {activeView.heading}
               </h1>
               <p>{activeView.intro}</p>
             </div>
-            <span className="page-tag">
-              {view === 'inference' ? 'INFÉRENCE LOCALE' : 'RÉFÉRENCE PUBLIÉE'}
-            </span>
           </div>
           {error && (
             <div className="notice error" role="alert">
@@ -244,7 +232,6 @@ export default function App() {
             <>
               <div className="two-col input-layout">
                 <section className="panel import-panel" aria-labelledby="import-title">
-                  <p className="eyebrow">01 / PRÉPARER LES MESURES</p>
                   <h2 id="import-title">Un CSV, une décision figée.</h2>
                   <p className="subtle">
                     {info
@@ -286,7 +273,7 @@ export default function App() {
                       disabled={!info || busy || connecting}
                       onClick={() => fileInput.current?.click()}
                     >
-                      Choisir un CSV <span aria-hidden="true">↗</span>
+                      Choisir un CSV
                     </button>
                   </div>
                   <div className="example-tools">
@@ -341,7 +328,6 @@ export default function App() {
                       onClick={() => void analyze()}
                     >
                       {busy ? 'Analyse en cours…' : 'Analyser les mesures'}{' '}
-                      <span aria-hidden="true">→</span>
                     </button>
                     {busy && (
                       <button
@@ -369,7 +355,6 @@ export default function App() {
                 </section>
                 <section className="panel model-panel" aria-labelledby="model-title">
                   <div className="model-top">
-                    <p className="eyebrow">02 / MODÈLE ACTIF</p>
                     <span className={`pill ${info ? 'ready' : 'neutral'}`}>
                       {connecting ? 'Connexion' : info ? 'Figé' : 'Hors ligne'}
                     </span>
@@ -411,7 +396,7 @@ export default function App() {
                       </dl>
                       <div className="model-rule">
                         <span>Score APS ≥ seuil</span>
-                        <strong>Décision pos · à inspecter ↗</strong>
+                        <strong>Décision pos · à inspecter</strong>
                       </div>
                       <details className="identity-details">
                         <summary>Empreintes et limites du modèle</summary>
@@ -437,7 +422,6 @@ export default function App() {
                     </>
                   ) : (
                     <div className="model-empty">
-                      <span className="empty-symbol">◇</span>
                       <p>
                         {connecting
                           ? 'Vérification de la disponibilité du modèle…'
@@ -491,7 +475,6 @@ export default function App() {
                 />
               ) : (
                 <section className="empty-state">
-                  <span className="empty-symbol">◎</span>
                   <div>
                     <h2>Votre revue commence ici.</h2>
                     <p>
@@ -502,7 +485,6 @@ export default function App() {
                 </section>
               )}
               <div className="privacy-note">
-                <span aria-hidden="true">◇</span>
                 <p>
                   Le CSV est lu dans votre navigateur ; seuls les capteurs sont envoyés à votre API
                   pour l’inférence. Aucun fichier n’est sauvegardé par ce parcours. Les annotations
