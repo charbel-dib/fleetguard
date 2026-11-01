@@ -44,3 +44,25 @@ run "create_oidc_provider_when_absent" {
     error_message = "Create exactly one GitHub provider when the account has none."
   }
 }
+run "deploy_roles_can_read_task_definitions" {
+  # Mocked apply: no AWS call, but policy JSON with ARNs becomes known and can be inspected.
+  command = apply
+  assert {
+    condition = alltrue([
+      for env in ["staging", "production"] : anytrue([
+        for statement in jsondecode(aws_iam_role_policy.deploy[env].policy).Statement :
+        contains(statement.Action, "ecs:DescribeTaskDefinition") && statement.Resource == "*"
+      ])
+    ])
+    error_message = "ecs:DescribeTaskDefinition has no resource-level permissions; a scoped ARN is always denied."
+  }
+  assert {
+    condition = alltrue([
+      for env in ["staging", "production"] : alltrue([
+        for statement in jsondecode(aws_iam_role_policy.deploy[env].policy).Statement :
+        statement.Resource != "*" if contains(statement.Action, "ecs:UpdateService")
+      ])
+    ])
+    error_message = "Service updates must stay scoped to the environment's own service."
+  }
+}

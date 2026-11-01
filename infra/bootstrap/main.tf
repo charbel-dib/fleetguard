@@ -160,7 +160,9 @@ resource "aws_iam_role_policy" "deploy" {
     Version = "2012-10-17"
     Statement = [
       { Effect = "Allow", Action = ["ecs:DescribeServices", "ecs:UpdateService"], Resource = "arn:aws:ecs:${var.region}:${local.account}:service/${var.project}-${each.key}/${var.project}-${each.key}" },
-      { Effect = "Allow", Action = ["ecs:DescribeTaskDefinition"], Resource = "arn:aws:ecs:${var.region}:${local.account}:task-definition/${var.project}-${each.key}:*" },
+      # DescribeTaskDefinition supports no resource-level permissions: AWS only evaluates "*".
+      # It is read-only; writes (UpdateService, PassRole) stay scoped to this environment.
+      { Effect = "Allow", Action = ["ecs:DescribeTaskDefinition"], Resource = "*" },
       { Effect = "Allow", Action = ["ecs:RegisterTaskDefinition"], Resource = "*" },
       { Effect = "Allow", Action = ["ecr:DescribeImages"], Resource = aws_ecr_repository.app.arn },
       { Effect = "Allow", Action = ["iam:PassRole"], Resource = ["arn:aws:iam::${local.account}:role/${var.project}-${each.key}-execution", "arn:aws:iam::${local.account}:role/${var.project}-${each.key}-task"], Condition = { StringEquals = { "iam:PassedToService" = "ecs-tasks.amazonaws.com" } } }
