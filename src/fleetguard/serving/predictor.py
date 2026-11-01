@@ -116,7 +116,11 @@ class Predictor:
             "policy": "challenge_cost",
             "score_semantics": metadata["score_semantics"],
         }
-        self.costs = dict(metadata["costs"])
+        # Same cost keys as release_v1 metadata, which the web client validates (contract v1).
+        self.costs = {
+            "false_positive_cost": int(metadata["costs"]["false_positive"]),
+            "false_negative_cost": int(metadata["costs"]["false_negative"]),
+        }
         self.predict([{name: None for name in features}])
 
     def predict(self, rows):

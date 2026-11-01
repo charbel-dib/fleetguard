@@ -75,6 +75,9 @@ def test_serves_fulltrain_release_with_identical_scores(release):
         ]
         assert body["model"]["threshold"] == threshold
         assert body["model"]["calibration"] == "raw"
+        info = client.get("/v1/model").json()
+        assert info["contract_version"] == 1
+        assert info["costs"] == {"false_positive_cost": 10, "false_negative_cost": 500}
         assert body["model"]["freeze_sha256"] == sha256_file(directory / "decision.json")
 
 
